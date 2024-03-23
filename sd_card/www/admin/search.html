@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Search Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" >
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <style>
+        body{
+            background-color: #f3f3f3;
+        }
+
+        .ui.open.button{
+            position: absolute;
+            top: 0.6em;
+            right: 1.2em;
+        }
+
+        .fileObject .fileCounter{
+            position: absolute;
+            top: 0.6em;
+            right: 1.2em;
+            background-color: #444444;
+            color: white;
+            padding: 4px;
+            min-width: 40px;
+            text-align: center;
+            border-radius: 0.2em;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <div class="ui container">
+        <div class="ui segment">
+            <div class="ui fluid icon input">
+                <input id="keyword" type="text" placeholder="Search for Keyword" onkeydown="handleKeyDown(event);">
+                <i class="inverted circular search link icon" onclick="search();"></i>
+            </div>
+        </div>
+        <div class="ui divider"></div>
+        <p id="resultsCount"></p>
+        <div class="ui segment" id="searchResults">
+            <div style="width: 100%;" align="center">
+                <br>
+                <h4 class="ui icon header">
+                    <i class="medium icons" style="color: #dbdbdb !important;">
+                        <i class="search icon"></i>
+                    </i>
+                    
+                    <div class="content" style="margin-top: 1em; color: #7c7c7c !important;">
+                        File Search
+                        <div class="sub header" style="color: #adadad !important;">This function will recursively search the whole SD card using keyword matching algorithm.<br>
+                            This might take a few minutes if you have a lots of files stored on your SD card.</div>
+                    </div>
+                </h4>
+                <br><br>
+            </div>
+        </div>
+        <br><br><br>
+        <!-- 
+        <div class="ui fileObject segment">
+            <h4 class="ui header" style="margin-bottom: 0px;">
+                <img src="img/file.svg">
+                <div class="content">
+                    <a>Filename</a>
+                    <div class="sub header">Filepath</div>
+                </div>
+            </h4>
+            <p class="fileCounter">1</p>
+        </div>
+        -->
+    </div>
+    <script>
+        function search(){
+            let keyword = $("#keyword").val();
+            let startTime = Date.now();
+            $("#searchResults").html(`
+                <div class="ui active inverted dimmer" style="height:  200px;">
+                    <div class="ui text loader">Scanning recursively...</div>
+                </div>
+            `);
+            $.get("/api/fs/search?keyword=" + keyword, function(data){
+                $("#searchResults").empty();
+                if (data.length == 0){
+                    //Nothing found
+                    $("#searchResults").html(`<div style="width: 100%;" align="center">
+                        <br>
+                        <h4 class="ui icon header">
+                            <i class="medium icons" style="color: #dbdbdb !important;">
+                                <i class="red times icon"></i>
+                            </i>
+                            
+                            <div class="content" style="margin-top: 1em; color: #7c7c7c !important;">
+                                No Results
+                                <div class="sub header" style="color: #adadad !important;">This search engine is only capable of filename keyword search and not fuzzy search. Make sure you only enter the critical keywords.</div>
+                            </div>
+                        </h4>
+                        <br><br>
+                    </div>`);
+                }else{
+                    let counter = 1;
+                    data.forEach(function(filepath){
+                        let filename = filepath.split("/").pop();
+                        $("#searchResults").append(`<div class="ui fileObject segment">
+                            <h4 class="ui header" style="margin-bottom: 0px;">
+                                <img src="img/file.svg">
+                                <div class="content">
+                                    <a href="/api/fs/download?file=${filepath}&preview=true" target="_blank">${filename}</a>
+                                    <div class="sub header">${filepath}</div>
+                                </div>
+                            </h4>
+                            <p class="fileCounter">${counter}</p>
+                        </div>`);
+                        counter++;
+                    });
+                }
+
+                $("#resultsCount").text(data.length + " results in " + (Date.now() - startTime)/1000 + " seconds");
+            })
+        }
+
+        function handleKeyDown(e){
+            if (e.keyCode == 13){
+                e.preventDefault();
+                search();
+            }
+        }
+       //Check login status
+       function initLoginCheck(){
+            $.get("/api/auth/chk", function(data){
+                if (data == false){
+                    window.location.href = "/login.html"
+                }
+            });
+       }
+       initLoginCheck();
+    </script>
+</body>
+</html>

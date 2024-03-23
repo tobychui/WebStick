@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Share | WebStick</title>
+	<link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.3/semantic.min.js" integrity="sha512-gnoBksrDbaMnlE0rhhkcx3iwzvgBGz6mOEj4/Y5ZY09n55dYddx6+WYc72A55qEesV8VX2iMomteIwobeGK1BQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.3/semantic.min.css" integrity="sha512-3quBdRGJyLy79hzhDDcBzANW+mVqPctrGCfIPosHQtMKb3rKsCxfyslzwlz2wj1dT8A7UX+sEvDjaUv+WExQrA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	 <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;200&display=swap" rel="stylesheet">
+
+    <style>
+		body {
+            
+        }
+
+		.main{
+			display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 60px);
+            margin: 0;
+		}
+		
+        #qr-code {
+            max-width: 300px;
+			height: 300px;
+        }
+
+        #generate-btn {
+            cursor: pointer;
+        }
+		
+		.ui.header,button,input{
+		    font-family: 'Noto Sans TC', sans-serif !important;
+		}
+		
+		@media screen and (min-width: 768px) {
+			#title{
+				padding-top: 3em;
+				border-right: 1px solid #dedede;
+				padding-right: 5em;
+			}
+			
+			#title .ui.header{
+				width: 300px;
+			}
+			
+			#qrgrid{
+				padding-left: 5em;
+			}
+		}
+    </style>
+</head>
+<body>
+	<div class="main">
+		<div class="ui stackable grid">
+			<div id="title" class="eight wide column" align="center">
+				<h2 class="ui header">
+					<span id="filename"><i class="ui loading spinner icon"></i> Loading</span>
+					<div class="sub header" id="filepath"></div>
+				</h2>
+				<table class="ui very basic collapsing celled table">
+					<tbody>
+					  <tr>
+						<td>File Size</td>
+						<td id="filesize"></td>
+					  </tr>
+					  <tr>
+						<td>Share ID</td>
+						<td id="shareid"></td>
+					  </tr>
+					</tbody>
+				</table>
+				<a class="ui basic button" id="downloadBtn" href="" target="_blank" download=""><i class="ui blue download icon"></i> Download</a>
+			</div>
+		<div id="qrgrid" class="eight wide column"  align="center">
+			<div style="width: 300px">
+				<div id="qr-code"></div>
+				<Br>
+				<p>Download on another device</p>
+			</div>
+		</div>
+	</div>
+    <script>
+
+		function initDownloadInfo(){
+			const urlParams = new URLSearchParams(window.location.search);
+			const id = urlParams.get('id');
+			$.get("/share?id=" + id + "&prop", function(data){
+				if (data.error == undefined){
+					$("#filename").text(data.filename);
+					$("#filepath").text(data.filepath);
+					$("#filesize").text(humanFileSize(data.filesize, false, 2));
+					$("#shareid").text(data.shareid);
+					$("#downloadBtn").attr("href", "/share?id=" + id + "&download");
+					$("#downloadBtn").attr("download", data.filename);
+					document.title = data.filename + " | WebStick Share"
+				}
+			})
+		}
+
+		initDownloadInfo();
+
+
+		function initQrCode(url){
+			var qrcode = new QRCode(document.getElementById('qr-code'), {
+                text: url,
+                width: 300,
+                height: 300
+            });
+		}
+		initQrCode(window.location.href);
+		
+		function humanFileSize(bytes, si=false, dp=1) {
+			const thresh = si ? 1000 : 1024;
+
+			if (Math.abs(bytes) < thresh) {
+				return bytes + ' B';
+			}
+
+			const units = si 
+				? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+				: ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+			let u = -1;
+			const r = 10**dp;
+
+			do {
+				bytes /= thresh;
+				++u;
+			} while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+			return bytes.toFixed(dp) + ' ' + units[u];
+		}
+
+    </script>
+</body>
+</html>

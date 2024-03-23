@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+  <!-- HTML Meta Tags -->
+  <title>Welcome to WebStick!</title>
+  <meta name="description" content="A tiny web server powered by ESP8266, designed by tobychui">
+  <meta name="viewport" content="width=device-width, initial-scale=1" >
+  
+  <!-- Facebook Meta Tags -->
+  <meta property="og:url" content="https://imuslab.com">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Welcome to WebStick!">
+  <meta property="og:description" content="A tiny web server powered by ESP8266, designed by tobychui">
+  <meta property="og:image" content=" ">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="imuslab.com">
+  <meta property="twitter:url" content="https://imuslab.com">
+  <meta name="twitter:title" content="Welcome to WebStick!">
+  <meta name="twitter:description" content="A tiny web server powered by ESP8266, designed by tobychui">
+  <meta name="twitter:image" content=" ">
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
+  <style>
+	.character.ring{
+		width: 320px;
+		height: 320px;
+		margin-top: 20px;
+		border: 5px solid #f9c729 !important;
+		background-color: white;
+		border-radius: 50%;
+		display: inline-block;
+	}
+	
+	.character.infill{
+		width: 260px;
+		height: 260px;
+		margin-top: 25px;
+		background-color: #ffcb2e;
+		border-radius: 50%;
+		display: inline-block;
+	}
+
+	.charactercard{
+		width: 375px !important;
+		border: 0px solid transparent;
+		-webkit-box-shadow: none !important;
+		box-shadow: -3px 12px 19px 5px rgba(204,204,204,0.59) !important;
+	}
+
+	.dark.divider{
+		height: 3px;
+		background: #020202;
+		width: 60px;
+		margin-bottom: 1.4em;
+		margin-top: 1.6em;
+	}
+
+	.breadcrumb .section{
+		font-weight: 300;
+		font-size: 1.2em;
+	}
+
+	.blacklink{
+		color: #020202;
+		transition: margin-top ease-in-out 0.1s, color ease-in-out 0.1s !important;
+	}
+
+	.blacklink:hover{
+		color: #020202;
+		opacity: 0.7;
+		margin-top: -1.2em !important;
+	}
+	
+	.linkbuttons{
+		padding: 2em;
+	}
+
+	.linkbuttons .ui.white.button{
+		background: white !important;
+		padding: 1.2em;
+		margin-top: 0.8em;
+	}
+
+	.linkbuttons .ui.white.button:hover{
+		opacity: 0.8;
+	}
+  </style>
+</head>
+<body>
+	<div class="ui container" align="center">
+	<br>
+		<div class="ui fluid card charactercard">
+			<div class="image" style="background-color: #ffe38d;" align="center">
+				<div class="character ring">
+					<div class="character infill">
+						<img src="img/selfie.jpg" style="border-radius: 50%; width: 100%; user-select: none; pointer-events: none;">
+					</div>    
+				</div>    
+				<h1 style="font-weight: bolder;">Hello visitor!</h1>
+				<div class="dark divider"></div>
+				<div class="ui breadcrumb">
+					<div class="section">Software Engineer</div>
+					<div class="divider"> / </div>
+					<div class="section">Electronics Maker</div>
+				</div>
+				<div class="linkbuttons">
+					<a class="ui fluid white button" href="about.html">About WebStick</a>
+					<a class="ui fluid white button" href="blog/index.html">My Blog</a>
+					<a class="ui fluid white button" href="down/"><i class="ui download icon"></i> Downloads</a>
+					<a class="ui fluid white button" href="tool/qr.html"><i class="ui qrcode icon"></i> QR Code Generator</a>
+					<div class="ui divider"></div>
+					<a class="ui fluid white button" href="admin/"><i class="ui sign in icon"></i> Admin Panel</a>
+				</div>
+		</div>
+		<div class="content" align="center">
+			<a class="blacklink" href="https://www.youtube.com/channel/UCzbcGOZHO2BH-ANX7W0MGIg"><i class="big youtube icon"></i></a>
+			<a class="blacklink" href="https://blog.imuslab.com"><i class="big wordpress icon"></i></a>
+			<a class="blacklink" href="mailto:imuslab@gmail.com"><i class="big envelope icon"></i></a>
+			<a class="blacklink" href="https://github.com/tobychui/"><i class="big github icon"></i></a>
+			<a class="blacklink" href="https://www.facebook.com/ImusLaboratory"><i class="big facebook icon"></i></a>
+	  </div>
+	</div>
+		<br>
+		<p>This site is hosted on a WebStick designed by <a href="https://imuslab.com">imuslab</a></p>
+		<br>
+	</div>
+</body>
+</html>

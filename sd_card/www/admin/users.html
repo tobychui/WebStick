@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Users List</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" >
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+        <style>
+            body{
+                background-color: rgb(243, 243, 243);
+            }
+        </style>
+    </head>
+    <body>
+        <br>
+        <div class="ui container">
+            <div class="ui segment">
+                <h4 class="ui header">
+                    <img src="img/user.svg">
+                    <div class="content">
+                      <span id="currentUsername"><i class="ui loading spinner icon"></i> Loading</span>
+                      <div class="sub header">Current Account Information</div>
+                    </div>
+                </h4>
+            </div>
+            <div class="ui segment">
+                <p>List of users registered in this WebStick</p>
+                <table class="ui unstackable basic celled table">
+                    <thead>
+                      <tr><th>Username</th>
+                      <th>Actions</th>
+                    </tr></thead>
+                    <tbody id="userTable">
+                      <tr>
+                        <td colspan="2"><i class="ui loading spinner icon"></i> Loading</td>
+                      </tr>
+                    </tbody>
+                </table>
+                <div class="ui divider"></div>
+                <form id="newUserForm" class="ui form" onsubmit="handleNewUser(event);">
+                    <div class="field">
+                      <label>Username</label>
+                      <input id="username" type="text">
+                    </div>
+                    <div class="field">
+                      <label>Password</label>
+                      <input id="password" type="password">
+                    </div>
+                    <div class="field">
+                        <label>Confirm Password</label>
+                        <input id="confirmpw" type="password">
+                    </div>
+                    <button class="ui basic button"><i class="ui green add icon"></i> Create User</button>
+                </form>
+               
+            </div>
+        </div>
+        <script>
+            var currentUserInfo = {};
+            //Load current login user info from server
+            function initUserInfo(){
+                $.get("/api/user/info", function(data){
+                    currentUserInfo = data;
+                    var html = data.username;
+                    if (data.admin){
+                        html += ` <i class="yellow shield alternate icon"></i>`;
+                    }else{
+                        //Hide the new user section
+                        $("#newUserForm").remove();
+                    }
+                    $("#currentUsername").html(html);
+                    initUserList();
+                })
+            }
+            initUserInfo();
+
+            //Load user list from WebStick
+            function initUserList(){
+                $("#userTable").html(`<tr>
+                    <td colspan="2"><i class="ui loading spinner icon"></i> Loading</td>
+                </tr>`);
+                $.get("/api/user/list", function(data){
+                    if (data.error != undefined){
+                        alert(data.error);
+                    }else{
+                        $("#userTable").html(``);
+                        data.forEach(function(user){
+                            let username = user.Username;
+
+                            if (!currentUserInfo.admin){
+                                //Not admin
+                                var actionField = '<small style="opacity: 0.3;">No available actions</small>';
+                                if (username == currentUserInfo.username){
+                                    actionField = `<button class="ui basic button" onclick="changePassword('${username}');"><i class="ui blue edit icon"></i> Change Password</button>`;
+                                }
+                                $("#userTable").append(`<tr>
+                                    <td>${username}</td>
+                                    <td>
+                                        ${actionField}
+                                    </td>
+                                </tr>`);
+                            }else{
+                                //admin
+                                $("#userTable").append(`<tr>
+                                    <td>${username}</td>
+                                    <td userid="${username}">
+                                        <button class="ui basic button" onclick="changePassword('${username}');"><i class="ui blue edit icon"></i> Change Password</button>
+                                        <button class="ui basic button" onclick="delUser('${username}');"><i class="ui red trash icon"></i> Remove</button>
+                                    </td>
+                                </tr>`);
+                            }
+                           
+                        });
+
+                        if (data.length == 0){
+                            $("#userTable").append(`<tr>
+                                <td colspan="2"><i class="green circle check icon"></i> No registered user</td>
+                            </tr>`);
+                        }
+                    }
+                })
+            }
+            
+
+            //Create new user
+            function handleNewUser(e){
+                e.preventDefault();
+                let username = $("#username").val().trim();
+                let password = $("#password").val().trim();
+                let confirmpw = $("#confirmpw").val().trim();
+
+                if (password != confirmpw){
+                    //Mismatch
+                    $("#confirmpw").parent().addClass("error");
+                    return;
+                }else{
+                    $("#confirmpw").parent().removeClass("error");
+                }
+
+                //Create the user
+                $.post("/api/user/new?username=" + username + "&password=" + password, function(data){
+                    if (data.error != undefined){
+                        alert(data.error);
+                    }else{
+                        //User added
+                        initUserList();
+                        $("#username").val("");
+                        $("#password").val("");
+                        $("#confirmpw").val("");
+                    }
+                })
+            }
+
+            //Server side will check for if you are admin
+            function delUser(username){
+                $.post("/api/user/del?username=" + username, function(data){
+                    if (data.error != undefined){
+                        alert(data.error);
+                    }else{
+                        //ok!
+                        initUserList();
+                    }
+                })
+            }
+
+            //Change password, admin can change all user's password, 
+            //user can only change their own password
+            function changePassword(username){
+                let newpassword = prompt("New password", "");
+                if (newpassword == "" || newpassword== null){
+                    return;
+                }
+                let confirmNewPassword  = prompt("Confirm new password", "");
+                if (newpassword != confirmNewPassword){
+                    alert("Confirm password not match!");
+                    return;
+                }
+
+                //Request server side to change user password
+                $.post("/api/user/chpw?username=" + username + "&newpw=" + newpassword, function(data){
+                    if (data.error != undefined){
+                        alert(data.error);
+                    }else{
+                        alert("Password updated!");
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>

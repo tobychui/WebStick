@@ -1,0 +1,205 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Markdown Editor</title>
+        <script
+			  src="https://code.jquery.com/jquery-3.7.0.min.js"
+			  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+			  crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="script/mde.css">
+        <script src="script/mde.js"></script>
+        <script src="../upld.js"></script>
+        <style>
+            html, body{
+                background-color:white;
+                height: calc(100% - 80px);
+            }
+            #maintext{
+                height:calc(100% - 1em) !important;
+            }
+            #statusText{
+                position: fixed;
+                bottom: 0.4em;
+                left: 0.4em;
+                color: rgb(179, 179, 179);
+            }
+        </style>
+    </head>
+    <body> 
+        <textarea id="maintext"></textarea>
+        <p id="statusText">Starting Up</p>
+        <script>
+            var simplemde;          //SimpleMDE editor object
+            var filepath = "";      //Current editing filepath
+            var file = "";
+            var originalTitle = "MDEditor";
+            var lastSaveContent = ""; //Content for last saved content
+            
+            if (window.location.hash.length > 1){
+                file = window.location.hash.substr(1);
+                file = JSON.parse(decodeURIComponent(file));
+                console.log("file Loaded", file);
+            }
+
+            if (typeof(file) == "object"){
+                //Set the window name
+                document.title = ("MDEditor - " + file.filename);
+                originalTitle = "MDEditor - " + file.filename;
+                //Check if there are more than 1 text files to be opened. If yes, open new windows.
+                
+               
+                filepath = file.filepath;
+
+                //Check if this is json. If yes, parse it to string before displaying to prevent the [object Object] bug
+                var ext = filepath.split(".").pop();
+                var isJson = false;
+                if (ext == "json"){
+                    isJson = true;
+                }
+
+                //Load the file into the textarea
+                $.get("/api/fs/download?file=" + file.filepath,function(data){
+                    if (isJson){
+                        data = JSON.stringify(data);
+                    }
+                    $("#statusText").text("File loaded: " + file.filepath);
+                    $("#maintext").text(data);
+                    //Load Markdown Editor
+                    simplemde = new SimpleMDE({
+                        autofocus: true,
+                        element: document.getElementById("maintext"),
+                        forceSync: true,
+                        insertTexts: {
+                            horizontalRule: ["", "\n\n-----\n\n"],
+                            image: ["![](http://", ")"],
+                            link: ["[", "](http://)"],
+                            table: ["", "\n\n| Column 1 | Column 2 | Column 3 |\n| -------- | -------- | -------- |\n| Text     | Text      | Text     |\n\n"],
+                        },
+                        placeholder: "(Empty file)",
+                        //promptURLs: true,
+                        renderingConfig: {
+                            singleLineBreaks: true,
+                            codeSyntaxHighlighting: true,
+                        },
+                        toolbar: ["bold","italic","heading","|","code","quote","unordered-list","ordered-list","|","link","image","table","|","preview","side-by-side","fullscreen","|",
+                        {
+                            name: "savebtn",
+                            action: function(){
+                                saveText();
+                            },
+                            className: "fa fa-floppy-o",
+                            title: "Save",
+                        },"guide","|"],
+                        spellChecker: true,
+                        status: ["autosave", "lines", "words", "cursor"], // Optional usage
+                    });
+
+                    lastSaveContent = data;
+                    lastSaveContent = lastSaveContent.split("\r").join("\n");
+                });
+            }else{
+                simplemde = new SimpleMDE({ element: document.getElementById("maintext") });
+            }
+
+            function handleNewFileSave(filedata){
+                for (var i=0; i < filedata.length; i++){
+                    var thisFilename = filedata[i].filename;
+                    var thisFilepath = filedata[i].filepath;
+                    
+                    //Update the current editing filepath
+                    filepath = thisFilepath;
+
+                    document.title = ("MDEditor - " + thisFilename);
+                    originalTitle = "MDEditor - " + thisFilename;
+                }
+
+                saveText();
+            }
+          
+            function saveText(callback=undefined){
+                if (filepath == ""){
+                    //This is a new file. Ask for save directory.
+                    ao_module_openFileSelector(handleNewFileSave, "user:/Desktop", "new",false, {
+                        defaultName: "Untitled.md"
+                    });
+                    return;
+                }
+                var newcontent = simplemde.value();
+
+                //Create the file to upload
+                const blob = new Blob([newcontent], { type: 'text/plain' });
+                const preuploadFile = new File([blob], file.filename);
+                let uploaddir = file.filepath.split("/");
+                uploaddir.pop();
+                uploaddir = uploaddir.join("/");
+                $("#statusText").text("Saving file...");
+                handleFile(preuploadFile, uploaddir, function(){
+                    lastSaveContent = newcontent;
+
+                    //Update the title as well
+                    document.title = (originalTitle);
+
+                    const currentDate = new Date();
+                    let saveDate = (`${currentDate.getFullYear()}/${currentDate.getMonth() + 1}/${currentDate.getDate()} ${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`);
+                    $("#statusText").text("File saved on " + saveDate);
+
+                    if (callback != undefined){
+                        callback();
+                    }
+                });
+                /*
+                ao_module_agirun("./MDEditor/filesaver.js", {
+                    filepath: filepath, 
+                    content: newcontent
+                }, function(data){
+                    console.log(data);
+                    if (data.error !== undefined){
+                        alert(data.error);
+                    }else{
+                        //Save succeed. Update last saved content
+                        lastSaveContent = newcontent;
+
+                        //Update the title as well
+                        document.title = (originalTitle);
+
+                        if (callback != undefined){
+                            callback();
+                        }
+                    }
+                }, function(){
+                    alert("Save File Failed!")
+                });
+                */
+
+            }
+
+
+            setInterval(function(){
+                //Check if the content from last save matched the current value on simplemde 
+                if (!isSaved()){
+                    document.title = ("*" + originalTitle);
+                }else{
+                    //No new changes
+                    document.title = (originalTitle);
+                }
+
+            }, 1000);
+
+            function isSaved(){
+                if (typeof(simplemde) == "undefined"){
+                    //Still loading
+                    return;
+                }
+                var currentContent = simplemde.value();
+                return (lastSaveContent == currentContent);
+            }
+
+            document.addEventListener('keydown', function(event) {
+                if (event.ctrlKey && event.keyCode === 83) {
+                    event.preventDefault(); // Prevent the default browser behavior (e.g., saving the page)
+                    saveText(); 
+                }
+            });
+       </script>
+    </body>
+</html>

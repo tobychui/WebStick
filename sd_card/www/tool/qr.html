@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+	<link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.3/semantic.min.js" integrity="sha512-gnoBksrDbaMnlE0rhhkcx3iwzvgBGz6mOEj4/Y5ZY09n55dYddx6+WYc72A55qEesV8VX2iMomteIwobeGK1BQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.3/semantic.min.css" integrity="sha512-3quBdRGJyLy79hzhDDcBzANW+mVqPctrGCfIPosHQtMKb3rKsCxfyslzwlz2wj1dT8A7UX+sEvDjaUv+WExQrA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	 <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;200&display=swap" rel="stylesheet">
+
+    <style>
+		body {
+            
+        }
+
+		.main{
+			display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 60px);
+            margin: 0;
+		}
+		
+        #qr-code {
+            max-width: 300px;
+			height: 300px;
+        }
+
+        #generate-btn {
+            cursor: pointer;
+        }
+		
+		.ui.header,button,input{
+		    font-family: 'Noto Sans TC', sans-serif !important;
+		}
+		
+		@media screen and (min-width: 768px) {
+			#title{
+				padding-top: 15em;
+				border-right: 1px solid #dedede;
+				padding-right: 5em;
+			}
+			
+			#title .ui.header{
+				width: 300px;
+			}
+			
+			#qrgrid{
+				padding-left: 5em;
+			}
+		}
+    </style>
+</head>
+<body>
+	<div class="main">
+		<div class="ui stackable grid">
+		<div id="title" class="eight wide column" align="center">
+			<h2 class="ui header">
+			QR Code Generator
+			<div class="sub header">No ads and it just works</div>
+			</h2>
+			<br>
+			<a href="../">Back to homepage</a>
+		</div>
+		<div id="qrgrid" class="eight wide column"  align="center">
+		<div style="width: 300px">
+			<div class="ui fluid input" style="margin-bottom: 1em;">
+			<input type="text" id="text-input" placeholder="Enter text for QR code" onkeypress="handleKeyPress(event)">
+			</div>
+			<button class="ui fluid basic button" id="generate-btn" onclick="generateQRCode()">Generate QR Code</button>
+			<div class="ui divider"></div>
+			<div id="qr-code"></div>
+			</div>
+		</div>
+		</div>
+		
+	</div>
+    <script>
+		function initQrCode(){
+			var qrcode = new QRCode(document.getElementById('qr-code'), {
+                text: "https://imuslab.com",
+                width: 300,
+                height: 300
+            });
+		}
+		initQrCode();
+        function generateQRCode() {
+            var textInput = document.getElementById('text-input').value;
+            var qrCodeDiv = document.getElementById('qr-code');
+
+            if (textInput.trim() === "") {
+                alert("Please enter text for the QR code.");
+                return;
+            }
+
+            qrCodeDiv.innerHTML = ""; // Clear previous QR code
+
+            var qrcode = new QRCode(qrCodeDiv, {
+                text: textInput,
+                width: 300,
+                height: 300
+            });
+			
+			$(qrCodeDiv).transition('fade down', function(){
+				$(qrCodeDiv).transition('fade down');
+			});
+        }
+		
+		 function handleKeyPress(event) {
+            // Check if the pressed key is Enter (key code 13)
+            if (event.key === 'Enter') {
+                generateQRCode();
+            }
+        }
+		
+    </script>
+</body>
+</html>

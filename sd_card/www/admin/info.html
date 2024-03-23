@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Disk Info</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" >
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <style>
+        body{
+            background-color: rgb(243, 243, 243);
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <div class="ui container">
+        <div class="ui segment">
+            <h3 class="ui header">
+                <img src="img/network.svg">
+                <div class="content">
+                    Network Storage
+                    <div class="sub header">Total space used on SD card</div>
+                </div>
+            </h3>
+            <div class="ui blue progress" style="margin-bottom: 0.3em;">
+                <div id="spaceUsedBar" class="bar" style="width: 30%;">
+                    <div class="progress">Loading...</div>
+                </div>
+            </div>
+            <p id="volText"></p>
+            <button onclick="initSDCardInfo();" style="position: absolute; top: 0.6em; right: 0.6em;" class="ui circular icon right floated basic button"><i class="ui green refresh icon"></i></button>
+        </div>
+        <div class="ui segment">
+            <h3 class="ui header">
+                <img src="img/cluster.svg">
+                <div class="content">
+                    Wake-On-Lan
+                    <div class="sub header">Power on a host in LAN by sending WoL magic packet</div>
+                </div>
+            </h3>
+            <p>Target host MAC address (in XX:XX:XX:XX:XX:XX format)</p>
+            <div class="ui action small fluid input">
+                <input type="text" id="targetMacAddress" placeholder="MAC Address">
+                <button class="ui basic button" onclick="sendWakeOnLan();"><i class="green power icon"></i> Power-On</button>
+            </div>
+        </div>
+        <div class="ui segment">
+            <h3 class="ui header">
+                <img src="img/wifi.svg">
+                <div class="content">
+                    Network Details
+                    <div class="sub header">WiFi information for the current connected AP</div>
+                </div>
+            </h3>
+            <div class="ui text container">
+                <table class="ui very basic celled small table">
+                    <tbody id="wifiInfoTable">
+                        <tr>
+                            <td colspan="2"><i class="ui loading spinner icon"></i> Loading</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="ui divider"></div>
+        <p>WebStick Management Interface designed by <a href="https://imuslab.com" target="_blank">tobychui</a></p>
+        <br>
+    </div>
+    <script>
+        function initWiFiInfo(){
+            $.get("/api/info/wifi", function(data){
+                if (data.error == undefined){
+                    $("#wifiInfoTable").empty();
+                    $("#wifiInfoTable").append(`
+                    <tr>
+                        <td>SSID</td>
+                        <td>${data.SSID}</td>
+                    </tr>
+                    <tr>
+                        <td>Wifi Channel</td>
+                        <td>${data.WifiStatus}</td>
+                    </tr>
+                    <tr>
+                        <td>Wifi Strength</td>
+                        <td>${data.WifiStrength}</td>
+                    </tr>
+                    <tr>
+                        <td>MAC Address</td>
+                        <td>${data.MAC}</td>
+                    </tr>
+                    <tr>
+                        <td>IP Address</td>
+                        <td>${data.IP}</td>
+                    </tr>
+                    <tr>
+                        <td>Subnet Mask</td>
+                        <td>${data.Subnet}</td>
+                    </tr>
+                    <tr>
+                        <td>Gateway</td>
+                        <td>${data.Gateway}</td>
+                    </tr>
+                    <tr>
+                        <td>DNS1</td>
+                        <td>${data.DNS1}</td>
+                    </tr>
+                    <tr>
+                        <td>DNS2</td>
+                        <td>${data.DNS2}</td>
+                    </tr>
+                    <tr>
+                        <td>DNS3</td>
+                        <td>${data.DNS3}</td>
+                    </tr>
+                    `);
+                }
+            });
+        }
+        initWiFiInfo();
+
+        function initSDCardInfo(){
+            $("#spaceUsedBar").find(".progress").text("Loading...");
+            $.get("/api/fs/disk", function(data){
+                if (data.error != undefined){
+                    alert(data.error);
+                    return;
+                }
+                let usedPercentage = data.usedSpace / data.diskSpace * 100;
+                $("#spaceUsedBar").css("width", usedPercentage + "%");
+                $("#spaceUsedBar").find(".progress").text(Math.round(usedPercentage) + "%");
+
+                $("#volText").text(`Used: ${humanFileSize(data.usedSpace)} / Total: ${humanFileSize(data.diskSpace)}`);
+            });
+        }
+        initSDCardInfo();
+
+        //Send wake on lan package
+        function sendWakeOnLan(){
+            var macAddr= $("#targetMacAddress").val().trim();
+            var regex = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/;
+            if (!regex.test(macAddr)){
+                alert(macAddr + " is not a valid MAC address");
+                return;
+            }
+
+            $.get("/api/wol?mac=" + macAddr, function(data){
+                if (data.error != undefined){
+                    alert(data.error);
+                }else{
+                    alert("WoL magic packet sent!")
+                }
+            })
+        }
+
+        //Send ICMP Ping
+        function pingTarget(){
+            var ipaddress = $("#targetIpAddr").val().trim();
+            if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)) {  
+                $.get("/api/ping?ipaddr=" + ipaddress, function(data){
+                    alert(data);
+                })
+            }else{
+                alert("Invalid ip address given");
+            }
+        }
+
+
+        function humanFileSize(bytes, si=false, dp=1) {
+            const thresh = si ? 1000 : 1024;
+
+            if (Math.abs(bytes) < thresh) {
+                return bytes + ' B';
+            }
+
+            const units = si 
+                ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+                : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+            let u = -1;
+            const r = 10**dp;
+
+            do {
+                bytes /= thresh;
+                ++u;
+            } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+            return bytes.toFixed(dp) + ' ' + units[u];
+        }
+
+     
+       //Check login status
+       function initLoginCheck(){
+            $.get("/api/auth/chk", function(data){
+                if (data == false){
+                    window.location.href = "/login.html"
+                }
+            });
+       }
+       initLoginCheck();
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"/>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="theme-color" content="#4b75ff">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="script/DPlayer.min.js"></script>
+        <style>
+            html, body{
+                height: 100% !important;
+            }
+            body{
+                background-color: black;
+                border: 0px;
+                padding: 0px;
+                margin: 0px;
+                overflow:hidden;
+            }
+            #dplayer{
+                height:100% !important; 
+            }
+        </style>
+    </head>
+    <body>
+        <div id="dplayer"></div>
+        <script>
+            function loadInputFiles(){
+                try{
+                    if (window.location.hash.length == 0){
+                        return null;
+                    }
+                    var inputFileInfo = window.location.hash.substring(1,window.location.hash.length);
+                    inputFileInfo = JSON.parse(decodeURIComponent(inputFileInfo));
+
+                    if (inputFileInfo.length == 0){
+                        return null;
+                    }
+                    return inputFileInfo
+                }catch{
+                    return null;
+                }
+            }
+
+            initPlayback();
+            
+
+            //Load global vol from localStorage
+            var defaultVol = localStorage.getItem("global_volume");
+            if (defaultVol == null || defaultVol == "" || defaultVol == undefined){
+                defaultVol = 0.4;
+            }
+
+            function initPlayback(){
+                //Get file playback info from hash
+                var playbackFile = loadInputFiles();
+                //Only handle one file
+                playbackFile = playbackFile;
+                if (playbackFile == null){
+                    return
+                }
+                //Update title name
+                document.title = ("Video - " + playbackFile.filename);
+                setTimeout(function(){
+                    updatePlayerSize();
+                },500);
+
+                 //Set player property
+                const dp = new DPlayer({
+                    container: document.getElementById('dplayer'),
+                    screenshot: true,
+                    autoplay: true,
+                    volume: parseFloat(defaultVol),
+                    video: {
+                        url: '/api/fs/download?preview=true&file=' + encodeURIComponent(playbackFile.filepath)
+                    }
+                });
+
+                
+                dp.on("volumechange",function(){
+                    var newVol = dp.volume();
+                    if (localStorage){
+                        localStorage.setItem("global_volume",newVol);
+                    }
+                });
+                
+
+                $(window).on("resize",function(){
+                    updatePlayerSize();
+                }); 
+
+            }
+           
+           
+
+            function updatePlayerSize(){
+                if ($("#dplayer").height() < window.innerHeight){
+                    var topm = (window.innerHeight - $("#dplayer").height()) / 2
+                    $("#dplayer").css("margin-top",topm);
+                    $("#dplayer").css("height","auto");
+                }
+            }
+        </script>
+    </body>
+</html>

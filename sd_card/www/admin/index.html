@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" >
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <style>
+        body{
+            overflow: hidden;
+        }
+        .windows{
+            width: 100%;
+            height: calc(100% - 46px);
+            background-color: rgb(241, 241, 241);
+        }
+        .frameWrapper{
+            width: 100%;
+            height: 100%;
+        }
+        .frameWrapper iframe{
+            border: 0px solid transparent;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="mainmenu ui inverted menu" style="margin-bottom: 0 !important; border-radius: 0 !important;">
+        <a class="item" href="/admin/index.html">
+            <img class="ui tiny image" src="img/icon.svg">
+        </a>
+        <a class="active yellow selectable icon item" onclick="switchFrame(event, this);" xframe="fs"><i class="folder icon"></i></a>
+        <a class="violet selectable icon item" onclick="switchFrame(event, this);" xframe="search"><i class="ui search icon"></i></a>
+        <a class="green selectable icon item" onclick="switchFrame(event, this);" xframe="shares"><i class="ui share alternate icon"></i></a>
+        <a class="blue selectable icon item" onclick="switchFrame(event, this);" xframe="users"><i class="ui user icon"></i></a>
+        <a class="grey selectable icon item" onclick="switchFrame(event, this);" xframe="info"><i class="ui info circle icon"></i></a>
+        <div class="right menu">
+            <a class="grey selectable icon item" title="Logout" onclick="handleLogout();"><i class="ui sign-out icon"></i></a>
+        </div>
+    </div>
+    <div class="windows">
+        <div id="fs" class="frameWrapper">
+            <iframe src="fs.html"></iframe>
+        </div>
+        <div id="search" class="frameWrapper" style="display:none;">
+            <iframe src="search.html"></iframe>
+        </div>
+        <div id="shares" class="frameWrapper" style="display:none;">
+            <iframe src="shares.html"></iframe>
+        </div>
+        <div id="users" class="frameWrapper" style="display:none;">
+            <iframe src="users.html"></iframe>
+        </div>
+        <div id="info" class="frameWrapper" style="display:none;">
+            <iframe src="info.html"></iframe>
+        </div>
+    </div>
+    <script>
+       $(".mainmenu .selectable.item").on("click", function(){
+            $(".mainmenu .item.active").removeClass("active");
+            $(this).addClass("active");
+       });
+
+       function handleLogout(){
+            $.get("/api/auth/logout", function(data){
+                window.location.href = "/index.html";
+            })
+       }
+
+       function switchFrame(event, object){
+            event.preventDefault();
+            let targetFrameID = $(object).attr("xframe");
+            $(".frameWrapper").hide();
+            $("#" + targetFrameID).show();
+       }
+
+       //Check login status
+       function initLoginCheck(){
+            $.get("/api/auth/chk", function(data){
+                if (data == false){
+                    window.location.href = "/login.html"
+                }
+            });
+       }
+       initLoginCheck();
+    </script>
+</body>
+</html>

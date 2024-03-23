@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"/>
+<html>
+<head>
+	<title>Music Player</title>
+	<meta charset="UTF-8">
+	<meta name="theme-color" content="#232324">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+	<style>
+	body{
+		padding:0px !important;
+		overflow: hidden;
+		height:100%;
+		background-color: #f2f2f2;
+	}
+
+	.coloredBackground{
+		background: rgb(253,255,254);
+		background: linear-gradient(321deg, rgba(253,255,254,1) 29%, rgba(240,250,255,1) 100%); 
+	}
+
+	html, body { height: 100%; width: 100%; margin: 0; }
+	.playerInterface{
+		background-color:rgba(226, 221, 220,0.95);
+		height:150px !important;
+		width:100%;
+	}
+	
+	#playerUI{
+	    margin-left:0px !important;
+		margin-right:0px !important;
+		width:100% !important;
+		position: relative;
+		color: #404147;
+		background: rgb(255,255,255);
+		background: linear-gradient(90deg, rgba(255,255,255,1) 13%, rgba(227,228,246,1) 84%); 
+		overflow: hidden;
+
+	}
+	.parkLeft{
+	    position:absolute !important;
+	    top:70px;
+	    left:5px;
+	    margin-left:-30px;
+	}
+	.rotateNinetyDegree{
+	    -webkit-transform: rotate(-90deg);
+        -moz-transform: rotate(-90deg);
+        -o-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+        transform: rotate(-90deg);
+	}
+	.roundbtn{
+	    border-radius: 40px !important;
+	    box-shadow: 2px 2px 2px 2px #bfbfbf;
+	}
+	.playBtn{
+		color: white !important;
+		transition: opacity 0.1s;
+	}
+
+	#playpauseBtn{
+		width: 66px;
+		height: 66px;
+	}
+
+	.playerControlWrapper .sidebuttons{
+		background-color: white !important;
+	}
+	.playerControlWrapper .white.icon.button:hover{
+		opacity: 0.6;
+	}
+	.playerControlWrapper{
+	    text-align: center;
+	    position:absolute;
+	    margin-top: 3rem;
+	    width:100% !important;
+	}
+	.rightPaddedOprButtons{
+	    position:absolute;
+	    right:3px;
+	    top:3px;
+	}
+	.modeEnabled{
+		background-color: #186ed2 !important;
+	    color:white !important;
+	    border: 0px solid transparent !important;
+	}
+	#volControlOverlay{
+	    background-color: rgba(255,255,255,0.01);
+	    z-index:999;
+	    position:absolute;
+	    width:14px;
+	    height:120px;
+	    top:17px;
+	    left:28px;
+	}
+	.songlabel{
+		padding-right:3px;
+		position:absolute;
+		display:inline-box;
+		left:5px;
+		top:5px;
+		color:#77767b;
+		height:22px;
+		text-overflow: ellipsis;
+		overflow: hidden; 
+		width: 100%; 
+		white-space: nowrap;
+		font-weight: bold;
+	}
+	.durationDisplay{
+		position:absolute;
+		right:0px;
+		bottom:0px;
+		padding-right:5px;
+		padding-bottom:5px;
+		margin: 0px !important;
+		color: #77767b;
+	}
+	.bottomBackground{
+		background: rgb(255,255,255);
+		background: linear-gradient(90deg, rgba(255,255,255,1) 13%, rgba(227,228,246,1) 84%); 
+		position:relative;
+		height:58px;
+		width:100%;
+	}
+	.sameDirFileList{
+		width:100%;
+		height:calc(100% - 220px) !important;
+		background-color:rgba(243, 243, 243, 0.95);
+		overflow-y:auto;
+		overflow-x:hidden;
+	}
+
+	#nearbyFilelist{
+		background: white !important;
+	}
+	
+	@supports ((-webkit-backdrop-filter: blur(2em)) or (backdrop-filter: blur(2em))) {
+		.sameDirFileList {
+			background-color:rgba(240, 240, 240, 0.5);
+			-webkit-backdrop-filter: blur(2em);
+			backdrop-filter: blur(2em);
+		}
+	}
+
+	.listitem{
+		border-bottom: 1px solid #404040;
+		padding: 12px;
+		color:rgb(51, 51, 51);
+		font-size:120%;
+		cursor:pointer;
+	}
+	.listitem:hover{
+		background-color:#e3e4f6;
+	}
+	.listitem.selected{
+		background-color:#e3e4f6;
+	}
+	.noradius{
+		border-radius: 0px !important;
+	}
+
+	#playerWrapper{
+		width: 100%;
+		height: 100%;
+	}
+
+	@media (min-width:600px) {
+		#playerWrapper{
+			border-radius: 0.6em;
+			overflow: hidden;
+			margin-top: 2em;
+			height: calc(100% - 4em);
+			max-width: 500px;
+			margin-left: 50%; 
+			transform: translate(-50%, 0%);
+			-webkit-box-shadow: 10px 10px 5px -4px rgba(28,28,28,0.1);
+			-moz-box-shadow: 10px 10px 5px -4px rgba(28,28,28,0.1);
+			box-shadow: 10px 10px 5px -4px rgba(28,28,28,0.1);
+		}
+	}
+	</style>
+</head>
+<body align="center">
+	<diV id="playerWrapper" align="left">
+		<div id="playerUI" class="playerInterface ui container">
+			<img id="Albumnart" class="ui fluid image" src="img/nothumb.png" style="position: absolute; top: -75px; opacity: 0.3; pointer-events: none; user-select: none;">
+			<div class="parkLeft">
+				<div class="ui primary small progress rotateNinetyDegree" style="width:120px !important; background-color: white;">
+					<div id="volControl" class="bar" style="min-width: 0%; width: 60%;background-color:#4576c5;"></div>
+				</div>
+				
+			</div>
+			<div id="volControlOverlay"></div>
+			<div class="playerControlWrapper" align="center">
+				<button class="ui white huge icon button sidebuttons roundbtn playlistStepBtn" onClick="lastSong();"><i class="step backward icon"></i></button>
+				<button id="playpauseBtn" style="background-color:#186ed2;" class="ui white massive icon button roundbtn playBtn" onClick="togglePlay(this);"><i class="pause icon"></i></button>
+				<button class="ui huge white icon button sidebuttons roundbtn playlistStepBtn" onClick="nextSong();"><i class="step forward icon"></i></button>
+			</div>
+			<div class="rightPaddedOprButtons">
+				<button id="repeatModeBtn" class="ui icon button" style="margin-top:0.6em; margin-right: 0.6em;" onClick="toggleRepeat(this);"><i class="retweet icon"></i></button><br>
+			</div>
+			<!-- Adding in some labels for the progress bars and song information-->
+			<p class="rotateNinetyDegree" style="position:absolute;top:65px;left:8px; font-weight: lighter;"><i class="small minus icon"></i> Volume <i class="small plus icon"></i></p>
+			<p class="durationDisplay">0:00 / 0:00</p>
+		</div>
+		
+		<div id="progressControl" class="ui attached small progress" style="height: 0.8rem; background: rgba(255,255,255,0.8);">
+			<div id="playbackProgress" class="bar" style="min-width: 0%; width: 0%;background-color: #4576c5; "></div>
+		</div>
+		<div class="bottomBackground" >
+			<!-- Song Title at the bottom black area-->
+			<div id="songtitle" class="songlabel">Loading Song Information</div>
+			<div id="fileSize" style="position:absolute;bottom:5px;left:5px;color:#77767b;"><i class="file outline icon"></i> 0.0 MB</div>
+			<div style="position:absolute;right:3px;bottom:3px;color:#77767b;"><i class='leaf icon'></i>AirMusic</div>
+		</div>
+		<!-- The sections below are for mobile interfaces -->
+		<div id="nearbyFilelist" class="sameDirFileList">
+			<div class="listitem" onClick="playThis(this);"><div style="width: 100%; text-align: center;"><i class="ui loading spinner icon"></i></div></div>
+		</div>
+		<!-- autoplay -->
+		<audio id="mainPlayer" style="display:none;" preload="auto" autoplay></audio>
+		
+		
+		<div style="display:none;">
+		<div id="meta_dirSongList"></div>
+		<div id="meta_playingSong"></div>
+		</div>
+	</diV>
+	<script>
+		var jsmediatags = window.jsmediatags;
+
+		function loadInputFiles(){
+            try{
+                if (window.location.hash.length == 0){
+                    return null;
+                }
+                var inputFileInfo = window.location.hash.substring(1,window.location.hash.length);
+                inputFileInfo = JSON.parse(decodeURIComponent(inputFileInfo));
+
+                if (inputFileInfo.length == 0){
+                    return null;
+                }
+                return inputFileInfo
+            }catch{
+                return null;
+            }
+        }
+
+
+	    //Define global variables
+	    var player = $("#mainPlayer")[0];
+		var mediaExchanging = false;
+		var listShown = true;
+
+		//Override VDI mode from ArozOS desktop
+	    player.volume = getCurrentGlobVol();
+		$("#nearbyFilelist").addClass("coloredBackground");
+		
+
+		//Ignore all other input files.
+		var playingFileInfo = loadInputFiles();
+		//Get the song title and meta data from server
+		var songInfo = [];
+		var songList = [];
+
+		if (playingFileInfo.filepath != undefined){
+			player.src = "/api/fs/download?preview=true&file=" + playingFileInfo.filepath;
+		}
+
+		if (playingFileInfo.filename != undefined){
+			document.title = "Playing - " + (playingFileInfo.filename);
+		}
+
+		//Populate the file info
+		$.get("/api/fs/properties?file=" + playingFileInfo.filepath, function(data){
+			if (data.error == undefined){
+				updateDisplayInformation(data.filename, humanFileSize(data.filesize));
+
+				updatePlayerThemeAndBackground(data.filepath);
+			}
+		});
+
+		let parentDir = playingFileInfo.filepath.split("/");
+		parentDir.pop();
+		parentDir = parentDir.join("/");
+
+		$.get("/api/fs/list?dir=" + parentDir, function(data){
+			if (data.error == undefined){
+				//Build songlist from dirlist
+				let newSongList = [];
+				data.forEach(function(fileEntry){
+					let ext = fileEntry.Filename.split(".").pop();
+					if (ext == "mp3" || ext == "aac" || ext == "ogg"){
+						newSongList.push([fileEntry.Filename, parentDir + "/" + fileEntry.Filename, "." + ext, humanFileSize(fileEntry.Filesize)]);
+					}
+				});
+
+				songList = newSongList;
+
+				//Create the playlist for all the files in the same directory
+				createPlayList();
+				
+				//Initiate the current playSong in the songList
+				updatePlayingSongSelection();
+			}
+		});
+
+		function humanFileSize(bytes, si=true, dp=1) {
+			const thresh = si ? 1000 : 1024;
+
+			if (Math.abs(bytes) < thresh) {
+				return bytes + ' B';
+			}
+
+			const units = si 
+				? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+				: ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+			let u = -1;
+			const r = 10**dp;
+
+			do {
+				bytes /= thresh;
+				++u;
+			} while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+			return bytes.toFixed(dp) + ' ' + units[u];
+		}
+
+
+
+		//Get the song title from meta data
+		//var songInfo = JSON.parse($("#meta_playingSong").text().trim());
+		//var songList = JSON.parse($("#meta_dirSongList").text().trim());
+
+		//Define supporting function for trunc.
+		String.prototype.trunc = String.prototype.trunc ||
+		  function(n){
+			  return (this.length > n) ? this.substr(0, n-1) + '&hellip;' : this;
+		  };
+		//Setup listen events to global volume 
+		setInterval(function(){
+		        var globvol = getCurrentGlobVol();
+		    	updateVolControlDisplay(globvol);
+		    	player.volume = globvol;
+				if (player.paused == true){
+					//Check if anytime that the button UI is not in sync with the current playing status. Update it if found.
+					$(".playBtn").html("<i class='play icon'></i>");
+				}else{
+					$(".playBtn").html("<i class='pause icon'></i>");
+				}
+		},1000);
+		updateVolControlDisplay(getCurrentGlobVol());
+		//Add volume bar change event listener
+		$("#volControlOverlay").on("click",function(e){
+		    var x = e.pageX - $('#volControlOverlay').offset().left;
+            var y = e.pageY - $('#volControlOverlay').offset().top;
+            var height = $('#volControlOverlay').height();
+            var newvol = Math.round(((height - y) / height)*20)/20;
+            localStorage.setItem("global_volume",newvol);
+            player.volume = newvol;
+            updateVolControlDisplay(newvol);
+		});
+		//Also add draging bar for mouse operations
+		player.onended = function(){
+			if (!repeatMode){
+				$(".playBtn").html("<i class='play icon'></i>");
+			}
+		}
+		var dragging = false;
+		$("#volControlOverlay").on("mousedown",function(){
+		    dragging = true;
+		});
+		$("#volControlOverlay").on("mousemove",function(e){
+		    if (dragging){
+		        var y = e.pageY - $('#volControlOverlay').offset().top;
+                var height = $('#volControlOverlay').height();
+				var newvol = Math.round(((height - y) / height)*100)/100;
+				//console.log(newvol);
+                localStorage.setItem("global_volume",newvol);
+                player.volume = newvol;
+                updateVolControlDisplay(newvol);
+		    }
+		});
+		$("#volControlOverlay").on("mouseup",function(){
+		    if (dragging){
+		        dragging = false;
+		    }
+		});
+		$("body").on("mouseup",function(){
+		    if (dragging){
+		        dragging = false;
+		    }
+		});
+		
+		//Audio element custom UI listeners
+		document.getElementById("progressControl").addEventListener("click",function(e){
+			//Click on the progress control bar, update the audio playing location
+			var x = e.pageX - $('#progressControl').offset().left;
+			var w = $("#progressControl").width();
+			var alength = player.duration;
+			var targetPos = (x / w * alength);
+			player.currentTime = targetPos;
+		});
+		
+		player.addEventListener("timeupdate", function(){
+			var currentTime = player.currentTime;
+			var duration = player.duration;
+			var progressPercentage = currentTime / duration * 100 + "%";
+			$("#playbackProgress").css("width",progressPercentage);
+			if (!mediaExchanging){
+				updateDurationDisplay(currentTime,duration);
+			}
+			
+		});
+		
+		//Load repeat mode from storage
+		var repeatMode = false;
+		repeatMode = loadStorage("repeatModeEmbedded");
+		if (repeatMode != ""){
+		    repeatMode = (repeatMode == "true");
+		}
+		if (repeatMode){
+		    $("#repeatModeBtn").addClass("modeEnabled");
+			player.loop = true;
+		}
+		
+		
+		//End of startup seuqence
+		
+		function updatePlayingSongSelection(){
+			$(".listitem.selected").removeClass("selected");
+			$(".listitem").each(function(){
+				if ($(this).attr("filename") == songInfo[0]){
+					$(this).addClass("selected");
+				}
+			});
+			
+		}
+		
+		function lastSong(){
+			//Switch to the next song in list
+			player.pause();
+			mediaExchanging = true;
+			$(".durationDisplay").html('<i class="clock icon"></i> Loading Media');
+			var nextSong = -1; //There is no next song in the current directory
+			for (var i =0; i < songList.length; i++){
+				if (songList[i][0] == songInfo[0]){
+					//Filename are the same
+					if (i-1 < 0){
+						//This is the last song in list
+						nextSong = songList[songList.length - 1]
+					}else{
+						//Play previous song
+						nextSong = songList[i-1]
+					}
+					
+				}
+			}
+			if (nextSong == -1){
+				//There is no more similar file with similar extensions or there are no other supported files in the same directory.
+				player.currentTime = 0;
+				updateDisplayInformation(songInfo[0],songInfo[3]);
+				player.play();
+				setTimeout(function(){
+					mediaExchanging = false;
+				},300);
+				return;
+			}
+			loadSongFromSongInfo(nextSong);
+			player.play();
+			setTimeout(function(){
+				mediaExchanging = false;
+			},300);
+			updatePlayingSongSelection();
+		}
+		
+
+		function uuidv4() {
+			return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+				(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+			);
+		}
+
+		function createPlayList(){
+			$(".sameDirFileList").html("");
+			for (var i = 0; i < songList.length; i++){
+				//console.log(box);
+				let thisFileItemID = "thumb_" + uuidv4();
+				$(".sameDirFileList").append(`<div class="listitem" filename="${songList[i][0]}" onClick="playThis(this);">
+					<div class="ui unstackable grid">
+						<div class="three wide column" align="right">
+							<img id="${thisFileItemID}" class="ui image noradius" style="height: 2rem;" src="img/eq.svg"> 
+						</div>
+  						<div class="thirteen wide column">
+							${songList[i][0]} (${songList[i][3]})
+						</div>
+					</div>
+					
+					
+					</div>`);
+			
+				
+			}
+		
+		}
+		
+		function playThis(object){
+			var songName = $(object).attr("filename");
+			$(".listitem.selected").removeClass("selected");
+			$(object).addClass("selected");
+			for (var i =0; i < songList.length; i++){
+				if (songList[i][0] == songName){
+					//This is the song that the user request to play.
+					player.pause();
+					mediaExchanging = true;
+					$(".durationDisplay").html('<i class="clock icon"></i> Loading Media');
+					loadSongFromSongInfo(songList[i]);
+					player.play();
+					setTimeout(function(){
+						mediaExchanging = false;
+					},300);
+					break;
+				}
+			}
+		}
+		
+		function nextSong(){
+			//Switch to the next song in list
+			player.pause();
+			mediaExchanging = true;
+			$(".durationDisplay").html('<i class="clock icon"></i> Loading Media');
+			var nextSong = -1; //There is no next song in the current directory
+			for (var i =0; i < songList.length; i++){
+				if (songList[i][0] == songInfo[0]){
+					//Filename are the same
+					if (i+1 >= songList.length){
+						//This is the last song in list
+						nextSong = songList[0]
+					}else{
+						//Play next song
+						nextSong = songList[i+1]
+					}
+					
+				}
+			}
+			if (nextSong == -1){
+				//There is no more similar file with similar extensions or there are no other supported files in the same directory.
+				player.currentTime = 0;
+				updateDisplayInformation(songInfo[0], songInfo[3]);
+				player.play();
+				setTimeout(function(){
+					mediaExchanging = false;
+				},300);
+				return;
+			}
+			loadSongFromSongInfo(nextSong);
+			player.play();
+			setTimeout(function(){
+				mediaExchanging = false;
+			},300);
+			updatePlayingSongSelection();
+		}
+		
+		function blobToDataURL(blob, callback) {
+			var a = new FileReader();
+			a.onload = function(e) {callback(e.target.result);}
+			a.readAsDataURL(blob);
+		}
+
+		function loadSongFromSongInfo(playSongInfo){
+			var songName = playSongInfo[0];
+			var songPath = playSongInfo[1];
+			var fileSize = playSongInfo[3];	
+			$(player).attr('src',"/api/fs/download?preview=true&file=" + encodeURIComponent(songPath));
+			
+			document.title = "Playing - " + songName;
+			songInfo = playSongInfo;
+			updateDisplayInformation(songInfo[0] ,songInfo[3]);
+			updatePlayerThemeAndBackground(songPath);
+		}
+
+		//Update the theme color, require something like { r: 231, g: 159, b: 140 }
+		function updateThemeColor(newRGBColor){
+			let colorText = `rgb(${newRGBColor.r} ,${newRGBColor.g} ,${newRGBColor.b})`
+			$("#playbackProgress").css("background-color", colorText);
+			$("#playpauseBtn").css("background-color", colorText);
+			$("#volControl").css("background-color", colorText);
+			$(".modeEnabled")[0].style.setProperty( "background-color", colorText, 'important' );
+			//$(".sameDirFileList").css("background-color", `rgba(${newRGBColor.r}, ${newRGBColor.g}, ${newRGBColor.b}, 0.1)`);
+		}
+		
+		function updateDisplayInformation(songname, filesize){
+			$("#songtitle").html("<i class='music icon'></i>" + songname)
+			$("#fileSize").html("<i class='file outline icon'></i> " + filesize);
+		}
+		
+		function updateDurationDisplay(pos,dur){
+			pos = secondsToHMS(pos);
+			dur = secondsToHMS(dur);
+			$(".durationDisplay").html(pos.trim() + " / " + dur.trim());
+		}
+		
+		function secondsToHMS(sec){
+			let totalSeconds = sec;
+			let hours = Math.floor(totalSeconds / 3600);
+			totalSeconds %= 3600;
+			let minutes = Math.floor(totalSeconds / 60);
+			let seconds = totalSeconds % 60;
+
+			if (hours > 0){
+				hours = String(hours).padStart(2, "0");
+			}else{
+				hours = 0;
+			}
+			seconds = Math.round(seconds);
+			minutes = String(minutes).padStart(2, "0");
+			seconds = String(seconds).padStart(2, "0");
+			if (hours != 0){
+				return hours + ":" + minutes + ":" + seconds;
+			}else{
+				return minutes + ":" + seconds;
+			}
+		}
+		function togglePlay(object){
+		    if (player.paused == true){
+		        player.play();
+		        $(object).html("<i class='pause icon'></i>");
+		    }else{
+		        player.pause();
+		        $(object).html("<i class='play icon'></i>");
+		    }
+		}
+		
+		function toggleRepeat(object){
+		    if ($(object).hasClass("modeEnabled")){
+		        $(object).removeClass("modeEnabled");
+		        repeatMode = false;
+		        setStorage("repeatModeEmbedded","false");
+				player.loop = false;
+		    }else{
+		        $(object).addClass("modeEnabled");
+		        repeatMode = true;
+		        setStorage("repeatModeEmbedded","true");player.loop = true;
+		    }
+		}
+		
+		function updateVolControlDisplay(percentage){
+		    var adjWidth = percentage * 100 + "%";
+		    $("#volControl").css("width",adjWidth);
+		    $("#volControl").attr("vol",percentage);
+		}
+		
+		function getCurrentGlobVol(){
+			//console.log(localStorage.getItem("global_volume"));
+			if (localStorage.getItem("global_volume") === null || localStorage.getItem("global_volume") == ""){
+				return 0;
+			}
+		    return parseFloat(localStorage.getItem("global_volume"));
+		}
+		
+		function setStorage(configName,configValue){
+			$.ajax({
+				type: 'GET',
+				url: "/api/pref/set",
+				data: {key: "Music/" + configName, value:configValue},
+				success: function(data){},
+				async:true
+			});
+			return true;
+		}
+		
+		function loadStorage(configName){
+			var result = "";
+			$.ajax({
+				type: 'GET',
+				url: "/api/pref/get",
+				data: {key: "Music/" + configName},
+				success: function(data){
+						if (data.error !== undefined){
+							result = "";
+						}else{
+							result = data;
+						}
+					},
+				error: function(data){result = "";},
+				async:false,
+				timeout: 3000
+			});
+			return result;
+		}
+
+	//Update the player background and theme color
+	function updatePlayerThemeAndBackground(songPath){
+		return;
+	}
+
+	function getAverageRGB(imgEl) {
+		var blockSize = 5, 
+			defaultRGB = {r:0,g:0,b:0}, 
+			canvas = document.createElement('canvas'),
+			context = canvas.getContext && canvas.getContext('2d'),
+			data, width, height,
+			i = -4,
+			length,
+			rgb = {r:0,g:0,b:0},
+			count = 0;
+
+		if (!context) {
+			return defaultRGB;
+		}
+
+		height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+		width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+
+		context.drawImage(imgEl, 0, 0);
+
+		try {
+			data = context.getImageData(0, 0, width, height);
+		} catch(e) {
+			/* security error, img on diff domain */
+			return defaultRGB;
+		}
+
+		length = data.data.length;
+
+		while ( (i += blockSize * 4) < length ) {
+			++count;
+			rgb.r += data.data[i];
+			rgb.g += data.data[i+1];
+			rgb.b += data.data[i+2];
+		}
+
+		// ~~ used to floor values
+		rgb.r = ~~(rgb.r/count);
+		rgb.g = ~~(rgb.g/count);
+		rgb.b = ~~(rgb.b/count);
+
+		return rgb;
+
+	}
+		
+	</script>
+</body>
+</html>
