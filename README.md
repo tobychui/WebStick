@@ -100,9 +100,9 @@ Here are the recommended settings for best performance.
 
 The WebStick provide basic web server functions like a fresh install Apache
 
+![image-20240323122057879](img/README/image-20240323122057879.png)
 
-
-▲ Homepage template
+▲ Homepage template (you can modify it to whatever you want)
 
 ![image-20230814160246137](img/README/image-20230814160246137.png)
 
