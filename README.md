@@ -186,7 +186,7 @@ As you might have notice by now this system is hosted on a 2 USD MCU (ESP8266), 
 
 ## Getting the Hardware
 
-All the gerber files are stored under the `/pcb` folder. It should be ready to manufacture. For part list, see BOM list csv file. If you want to make one for yourself, you can place order at PCB printing service provider get one from my [Tindie Store](https://www.tindie.com/products/tobychui/instant-webstick-a-usb-stick-web-server/)
+All the gerber files are stored under the `/pcb` folder. It should be ready to manufacture. For part list, see BOM list csv file. If you want to make one for yourself, you can place order at PCB printing service provider or get one from my [Tindie Store](https://www.tindie.com/products/tobychui/instant-webstick-a-usb-stick-web-server/)
 
 #### Notes on Issues & Feature Requests
 
