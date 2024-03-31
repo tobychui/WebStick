@@ -753,7 +753,7 @@
                             Share ID
                         </td>
                         <td style="word-break: break-all;">
-                            ${(data.shareid=="")?`File Not Shared`:`<a href="/share?id=${data.shareid}" target="_blank">${data.shareid}</a>`}
+                            ${(data.shareid=="" || data.shareid == undefined)?`File Not Shared`:`<a href="/share?id=${data.shareid}" target="_blank">${data.shareid}</a>`}
                         </td>
                     </tr>
                     <tr>
