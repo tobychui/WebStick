@@ -47,11 +47,22 @@ The WebStick is a ESP8266 powered device that provide a basic miniature cloud dr
 
 
 
-**Notes on WebStick Versions**
+**Notes on WebStick Hardware & Firmware version**
 
-- Features with the (v3) tag means the feature is designed for WebStick v3 and might not work as expected on WebStick v1 / v2
+| WebStick Version       | v1 Firmware | v2 Firmware | v3 Firmware | v4 Firmware |
+| ---------------------- | ----------- | ----------- | ----------- | ----------- |
+| WebStick v1 (Internal) | ✔           | 🟡           | 🟡           | 🟡           |
+| WebStick v2            | ✔           | ✔           | 🟡           | 🟡           |
+| WebStick v3            | ❌           | ❌           | ✔           | ✔           |
+| WebStick v4            | ❌           | ❌           | ✔           | ✔           |
 
-- The v4 firmware can be flashed to WebStick v3 / v4 hardware
+✔ = Recommended
+
+🟡 = Compatible (Might have some minor glitch here and there)
+
+❌ = Not Support
+
+
 
 ## Usage
 
