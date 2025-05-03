@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Admin Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" >
-
+    <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
@@ -34,6 +34,7 @@
             <img class="ui tiny image" src="img/icon.svg">
         </a>
         <a class="active yellow selectable icon item" onclick="switchFrame(event, this);" xframe="fs"><i class="folder icon"></i></a>
+        <a class="teal selectable icon item" onclick="switchFrame(event, this);" xframe="blog"><i class="ui edit icon"></i></a>
         <a class="violet selectable icon item" onclick="switchFrame(event, this);" xframe="search"><i class="ui search icon"></i></a>
         <a class="green selectable icon item" onclick="switchFrame(event, this);" xframe="shares"><i class="ui share alternate icon"></i></a>
         <a class="blue selectable icon item" onclick="switchFrame(event, this);" xframe="users"><i class="ui user icon"></i></a>
@@ -43,20 +44,23 @@
         </div>
     </div>
     <div class="windows">
-        <div id="fs" class="frameWrapper">
-            <iframe src="fs.html"></iframe>
+        <div id="fs" class="frameWrapper" xload="fs.html">
+            <iframe src="about:blank"></iframe>
         </div>
-        <div id="search" class="frameWrapper" style="display:none;">
-            <iframe src="search.html"></iframe>
+        <div id="blog" class="frameWrapper" xload="post.html" style="display:none;">
+            <iframe src="about:blank"></iframe>
         </div>
-        <div id="shares" class="frameWrapper" style="display:none;">
-            <iframe src="shares.html"></iframe>
+        <div id="search" class="frameWrapper" xload="search.html" style="display:none;">
+            <iframe src="about:blank"></iframe>
         </div>
-        <div id="users" class="frameWrapper" style="display:none;">
-            <iframe src="users.html"></iframe>
+        <div id="shares" class="frameWrapper" xload="shares.html" style="display:none;">
+            <iframe src="about:blank"></iframe>
         </div>
-        <div id="info" class="frameWrapper" style="display:none;">
-            <iframe src="info.html"></iframe>
+        <div id="users" class="frameWrapper" xload="users.html" style="display:none;">
+            <iframe src="about:blank"></iframe>
+        </div>
+        <div id="info" class="frameWrapper" xload="info.html" style="display:none;">
+            <iframe src="about:blank"></iframe>
         </div>
     </div>
     <script>
@@ -75,7 +79,9 @@
             event.preventDefault();
             let targetFrameID = $(object).attr("xframe");
             $(".frameWrapper").hide();
+            initiateIframeForID(targetFrameID);
             $("#" + targetFrameID).show();
+            window.location.hash = targetFrameID;
        }
 
        //Check login status
@@ -87,6 +93,32 @@
             });
        }
        initLoginCheck();
+
+       // Restore previously selected frame on page load
+       if (window.location.hash.length > 1) {
+            let targetFrameID = window.location.hash.substring(1);
+            if ($("#" + targetFrameID).length) {
+                $(".frameWrapper").hide();
+                initiateIframeForID(targetFrameID);
+                $("#" + targetFrameID).show();
+                $(".mainmenu .item.active").removeClass("active");
+                $(".mainmenu .item[xframe='" + targetFrameID + "']").addClass("active");
+            }
+        }else{
+            //Load the default frame
+            initiateIframeForID("fs");
+        }
+
+        //Dynamically load the iframe source when the frame is shown
+        function initiateIframeForID(eleId){
+            let targetFrameID = eleId;
+            if ($("#" + targetFrameID).length && $("#" + targetFrameID).attr("xload")) {
+                $("#" + targetFrameID + " iframe").attr("src", $("#" + targetFrameID).attr("xload"));
+                $("#" + targetFrameID).removeAttr("xload");
+            }
+        }
+
+        
     </script>
 </body>
 </html>

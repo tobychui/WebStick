@@ -1,0 +1,137 @@
+<style>
+    #image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        display: none;
+    }
+</style>
+
+<div class="ui container" style="margin-top: 20px;">
+    <div class="ui segment" id="paste-area" tabindex="0" style="min-height: 200px; text-align: center;">
+        <h3>Paste an image here (Ctrl + V)</h3>
+        <img id="image-preview" alt="Pasted Image" style="margin: 0 auto; display: block;">
+        <div class="ui divider"></div>
+        <p id="image_properties">No pasted image</p>
+        <button class="ui basic button" onclick="uploadImage()" style="margin-top: 20px;">
+            <i class="blue upload icon"></i> Upload
+        </button>
+    </div>
+</div>
+
+<script>
+    var pasteArea = document.getElementById('paste-area');
+    var imagePreview = document.getElementById('image-preview');
+
+    pasteArea.addEventListener('paste', (event) => {
+        const items = event.clipboardData.items;
+        for (let item of items) {
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    updateImageProperties(); // Update image properties after loading
+                };
+                reader.readAsDataURL(file);
+                break;
+            }
+        }
+    });
+
+    function updateImageProperties() {
+        const imageProperties = document.getElementById('image_properties');
+        if (imagePreview.src) {
+            const img = new Image();
+            img.src = imagePreview.src;
+            img.onload = () => {
+                imageProperties.textContent = `Width: ${img.width}px, Height: ${img.height}px`;
+            };
+        } else {
+            imageProperties.textContent = 'No pasted image';
+        }
+    }
+
+    //Upload to /site/img/{filename}.jpg
+    function uploadImage() {
+        const formData = new FormData();
+        const file = imagePreview.src; // Use the source of the image element
+
+        if (file) {
+            let filename = Date.now() + '.jpg'; // Generate a unique filename based on timestamp
+            compressImageToJpeg(filename).then((compressedFile) => {
+                formData.append("file1", compressedFile);
+
+                var ajax = new XMLHttpRequest();
+                ajax.addEventListener("load", function(event) {
+                    let responseText = event.target.responseText;
+                    if (responseText.includes("ok")){
+                        msgbox("Image uploaded successfully!", 3000);
+                        $("#image_properties").text("Image uploaded to /site/img/" + filename);
+                    }
+                }, false);
+
+                ajax.addEventListener("error", function(event) {
+                    alert("Failed to upload image: " + event.target.responseText);
+                }, false);
+
+                ajax.open("POST", "/upload?dir=/site/img");
+                ajax.send(formData);
+            }).catch(error => {
+                console.error('Error compressing image:', error);
+                alert('Failed to compress image.');
+            });
+        } else {
+            alert('No image to upload!');
+        }
+    }
+
+    function compressImageToJpeg(filename) {
+        return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                const maxWidth = 1024; // Set maximum width for compression
+                const maxHeight = 1024; // Set maximum height for compression
+                let width = img.width;
+                let height = img.height;
+
+                // Maintain aspect ratio
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], filename, {
+                                type: 'image/jpeg',
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            reject(new Error('Compression failed.'));
+                        }
+                    },
+                    'image/jpeg',
+                    0.8 // Compression quality (0.0 to 1.0)
+                );
+            };
+
+            img.onerror = () => reject(new Error('Failed to load image.'));
+            img.src = imagePreview.src; // Use the source of the image element
+        });
+    }
+    
+</script>

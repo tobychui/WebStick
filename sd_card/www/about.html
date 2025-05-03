@@ -1,103 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head>
-	
-  <!-- HTML Meta Tags -->
-  <title>About WebStick</title>
-  <meta name="description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta name="viewport" content="width=device-width, initial-scale=1" >
-  
-  <!-- Facebook Meta Tags -->
-  <meta property="og:url" content="https://imuslab.com">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Welcome to WebStick!">
-  <meta property="og:description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta property="og:image" content=" ">
 
-  <!-- Twitter Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="imuslab.com">
-  <meta property="twitter:url" content="https://imuslab.com">
-  <meta name="twitter:title" content="Welcome to WebStick!">
-  <meta name="twitter:description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta name="twitter:image" content=" ">
+<div class="ts-container is-very-narrow">
+  <div class="ts-image is-rounded">
+      <img src="img/wallpaper.jpg" width="100%">
+  </div>
+  <div class="ts-header has-top-spaced-large">What is a WebStick?</div>
+  <span class="ts-text">WebStick is a USB stick form factor web server powered by a ESP12E/F module. 
+      The web content is serve over the SD card connected to the MCU via SPI link, 
+      providing basic HTTP web server function with less than 2W of power usage.</span>
+  <div class="ts-divider has-top-spaced-large has-bottom-spaced-large"></div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+  <div class="ts-header">Why WebStick?</div>
 
-  <style>
-	.imgwrapper{
-        max-height: 200px;
-        overflow: hidden;
-    }
-  </style>
-</head>
-<body>
-	<div class="navibar"></div>
-    <div class="imgwrapper">
-        <img src="img/wallpaper.jpg" class="ui fluid image">
-    </div>
-    <div class="ui container">
-        <br>
-        <h3>What is a WebStick?</h3>
-        <p>WebStick is a USB stick form factor web server powered by a ESP12E/F module. 
-            The web content is serve over the SD card connected to the MCU via SPI link, 
-            providing basic HTTP web server function with less than 2W of power usage.</p>
-        <h3>Why WebStick?</h3>
-        <p>If you are just hosting a web server for personal use with a few occasional guests, 
-            you do not need a Raspberry Pi that draws 15W 24/7 just for this purpose. <br>
-            Instead, a WebStick with ESP8266 is just enough to do the tasks. 
-            With the help of CDN and Caching, even a 2W MCU running over WiFi 
-            can provide relatively acceptable performance for basic HTTP web services.</p>
-        <h3>Specification</h3>
-        <table class="ui very basic celled collapsing table">
-            <thead>
-              <tr><th>Item</th>
-              <th>Properties</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td data-label="">Power Requirement</td>
-                <td data-label="">5V 1A</td>
-              </tr>
-              <tr>
-                <td data-label="">Actual Power Draw</td>
-                <td data-label="">around 2 - 3W</td>
-              </tr>
-              <tr>
-                <td data-label="">Wireless Network Speed</td>
-                <td data-label="">2 - 4 Mbps</td>
-              </tr>
-              <tr>
-                <td data-label="">Max SD card size supported</td>
-                <td data-label="">4GB</td>
-              </tr>
-              <tr>
-                <td data-label="">SD card format</td>
-                <td data-label="">FAT32</td>
-              </tr>
-              <tr>
-                <td data-label="">Arduino IDE Programmable</td>
-                <td data-label=""><i class="ui green check icon"></i></td>
-              </tr>
-              <tr>
-                <td data-label="">Run PHP / nodejs</td>
-                <td data-label=""><i class="ui red times icon"></i></td>
-              </tr>
-              <tr>
-                <td data-label="">Recommended Number of Users</td>
-                <td data-label="">less than 20 viewers per day</td>
-              </tr>
-            </tbody>
-          </table>
-        <a class="ui basic button" href="index.html">Back</a>
-		<br><br>
-		<p>This site is hosted on a WebStick designed by <a href="https://imuslab.com">imuslab</a></p>
-        <br><br>
-	</div>
-    <script>
-        $(".navibar").load("navi.html");
-    </script>
-</body>
-</html>
+  <span class="ts-text">If you are just hosting a web server for personal use with a few occasional guests, 
+      you do not need a Raspberry Pi that draws 15W 24/7 just for this purpose.</span>
+
+  <span class="ts-text">Instead, a WebStick with ESP8266 is just enough to do the tasks. 
+      With the help of CDN and Caching, even a 2W MCU running over WiFi 
+      can provide relatively acceptable performance for basic HTTP web services.</span>
+  <div class="ts-divider has-top-spaced-large has-bottom-spaced-large"></div>
+      
+  <div class="ts-header">Specification</div>
+  <table class="ts-table is-single-line has-top-spaced-small">
+      <thead>
+        <tr><th>Item</th>
+        <th>Properties</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td data-label="">Power Requirement</td>
+          <td data-label="">5V 1A</td>
+        </tr>
+        <tr>
+          <td data-label="">Actual Power Draw</td>
+          <td data-label="">around 2 - 3W</td>
+        </tr>
+        <tr>
+          <td data-label="">Wireless Network Speed</td>
+          <td data-label="">2 - 4 Mbps</td>
+        </tr>
+        <tr>
+          <td data-label="">Max SD card size</td>
+          <td data-label="">4GB</td>
+        </tr>
+        <tr>
+          <td data-label="">SD card format</td>
+          <td data-label="">FAT32</td>
+        </tr>
+        <tr>
+          <td data-label="">Arduino IDE Support</td>
+          <td data-label=""><span class="ts-icon is-check-icon" style="color:var(--ts-positive-400);"></span></td>
+        </tr>
+        <tr>
+          <td data-label="">Run PHP / nodejs</td>
+          <td data-label=""><span class="ts-icon is-xmark-icon" style="color:var(--ts-negative-400);"></span></td>
+        </tr>
+        <tr>
+          <td data-label="">Max No. of Users</td>
+          <td data-label="">~20 viewers per day</td>
+        </tr>
+      </tbody>
+    </table>
+</div>

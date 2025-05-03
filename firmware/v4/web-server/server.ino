@@ -150,8 +150,7 @@ void initWebServer() {
   server.on("/api/share/list", HTTP_GET, HandleShareList);
   server.on("/api/share/clean", HTTP_GET, HandleShareListCleaning);
   server.on("/share", HTTP_GET, HandleShareAccess);
-  
-  
+
   /* Preference */
   server.on("/api/pref/set", HTTP_GET, HandleSetPref);
   server.on("/api/pref/get", HTTP_GET, HandleLoadPref);

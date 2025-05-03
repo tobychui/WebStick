@@ -15,6 +15,7 @@
     - ESPAsyncTCP (https://github.com/me-no-dev/ESPAsyncTCP)
     - ESPAsyncWebServer (https://github.com/me-no-dev/ESPAsyncWebServer)
     - ArduinoJson (https://github.com/bblanchon/ArduinoJson)
+    - ESPping (https://github.com/dvarrel/ESPping)
     - Wake On LAN (https://github.com/a7md0/WakeOnLan)
 */
 

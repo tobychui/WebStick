@@ -119,7 +119,7 @@
                 }
             });
         }
-        initWiFiInfo();
+        
 
         function initSDCardInfo(){
             $("#spaceUsedBar").find(".progress").text("Loading...");
@@ -135,7 +135,7 @@
                 $("#volText").text(`Used: ${humanFileSize(data.usedSpace)} / Total: ${humanFileSize(data.diskSpace)}`);
             });
         }
-        initSDCardInfo();
+        
 
         //Send wake on lan package
         function sendWakeOnLan(){
@@ -199,7 +199,13 @@
                 }
             });
        }
-       initLoginCheck();
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initWiFiInfo();
+            initSDCardInfo();
+            initLoginCheck();
+        });
+        
     </script>
 </body>
 </html>

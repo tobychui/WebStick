@@ -1,0 +1,174 @@
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" integrity="sha512-LhccdVNGe2QMEfI3x4DVV3ckMRe36TfydKss6mJpdHjNFiV07dFpS2xzeZedptKZrwxfICJpez09iNioiSZ3hA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<div class="ts-grid mobile:is-stacked">
+    <div class="column is-4-wide">
+        <!-- Post List -->
+        <div class="ts-box">
+            <div class="ts-content">
+                <div class="ts-header is-heavy">Recent Posts</div>
+                <div id="posts_list" class="ts-list has-top-spaced-small">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="column is-12-wide">
+        <div id="posts_contents">
+            <!-- Post Contents -->
+        </div>
+    </div>
+</div>
+
+<script>
+var postList = [];
+var currentPost = 0;
+/*
+    Rendering for Posts
+*/
+//Load a markdown file from URL and render it to target element
+function loadMarkdownToHTML(markdownURL, targetElement){
+    fetch(markdownURL).then( r => r.text() ).then( text =>{
+        var converter = new showdown.Converter();
+        let targetHTML = converter.makeHtml(text);
+        let processedEle = $(targetHTML);
+        //Wrap images in a div with class ts-image
+        processedEle.find("img").each(function() {
+            let imgSrc = $(this).attr("src");
+            console.log(imgSrc);
+            $(this).wrap(`<div class="ts-image is-rounded"></div>`);
+            $(this).attr("src", imgSrc);
+        });
+
+        processedEle.find("h1, h2, h3, h4, h5, h6, p").each(function() {
+            $(this).addClass("ts-text");
+        });
+
+        // Add preload="none" to all video and audio elements
+        processedEle.find("video, audio").each(function() {
+            $(this).attr("preload", "none");
+        });
+
+        $(targetElement).html(processedEle);
+    });
+}
+
+function initPosts(){
+    $("#posts_list").html(`<a href="#!"><span class="ts-icon is-spinning is-circle-notch-icon"></span> Loading</a>`);
+    $("#posts_contents").html(`
+        <div class="ui active dimmer" id="loadingDimmer">
+            <div class="ui text loader">Loading post contents</div>
+        </div>
+    `);
+    loadValue("site-posts", function(data){
+        $("#posts_list").html("");
+        $("#posts_contents").html(``);
+        try{
+            postList = JSON.parse(decodeURIComponent(atob(data)));
+            console.log(postList);
+            
+            // Sort posts by timestamp from latest to oldest
+            postList.sort((a, b) => {
+                let timestampA = parseInt(a.split("_")[0]);
+                let timestampB = parseInt(b.split("_")[0]);
+                return timestampB - timestampA;
+            });
+
+            let lastPostMonth = "";
+            for (let i = 0; i < postList.length; i++) {
+                let post = postList[i];
+                let thisPostMonth = new Date(parseInt(post.split("_")[0]) * 1000).toLocaleString(undefined, { month: 'long' });
+                let thisPostYear = new Date(parseInt(post.split("_")[0]) * 1000).getFullYear();
+                console.log(post, thisPostMonth, thisPostYear);
+                if (thisPostMonth != lastPostMonth) {
+                    appendMonthDividerToIndex(thisPostMonth + " " + thisPostYear);
+                    lastPostMonth = thisPostMonth;
+                }
+
+                renderIndex(post, i);
+            }
+
+            if (postList.length == 0){
+                $("#posts_list").html(`No posts found`);
+                $("#posts_contents").html(`No posts found`);
+            }else{
+                 //Render the first post
+                 renderPost(postList[0]);
+            }
+        }catch(ex){
+            console.log(ex);
+            $("#posts_list").html(`No posts found`);
+            $("#posts_contents").html(`No posts found`);
+        }
+        
+    })
+}
+
+function loadPost(element){
+    let postID = $(element).attr("postid");
+    let filename = postList[postID];
+    console.log(filename);
+    $("#posts_contents").html(`
+        <div class="ts-text is-center-aligned">Loading Post</div>
+    `);
+    renderPost(filename);
+    //Scroll to the top of the page
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+}
+
+//Render the side menu index
+function renderIndex(filename, index){
+    //Remove the timestamp
+    let postTitle = filename.split("_");
+    let timeStamp = postTitle.shift();
+    postTitle = postTitle.join("_");
+
+    //Pop the file extension
+    postTitle = postTitle.split(".");
+    postTitle.pop();
+    postTitle = postTitle.join(".");
+
+    //Create a wrapper element
+    $("#posts_list").append(`
+        <a href="#!" postid="${index}" onclick="loadPost(this);" class="ts-text is-link is-undecorated item">${postTitle}</a>
+    `);
+}
+
+function appendMonthDividerToIndex(month){
+    $("#posts_list").append(`
+        <div class="ts-text is-header has-top-spaced-small">${month}</div>
+    `);
+}
+
+//Render post
+function renderPost(filename){
+    //Remove the timestamp
+    let postTitle = filename.split("_");
+    let timeStamp = postTitle.shift();
+    postTitle = postTitle.join("_");
+
+    //Pop the file extension
+    postTitle = postTitle.split(".");
+    postTitle.pop();
+    postTitle = postTitle.join(".");
+
+    var postTime = new Date(parseInt(timeStamp) * 1000).toLocaleDateString("en-US")
+
+    //Create a wrapper element
+    $("#posts_contents").html(`
+        <div class="ts-box site-post" post_id="${timeStamp}">
+            <div class="ts-content is-padded">
+                <div class="ts-header is-heavy">${postTitle}</div>
+                <div class="ts-text is-description has-top-spaced-small">
+                    ${postTime}
+                </div>
+                <div class="ts-divider has-top-spaced-small has-bottom-spaced-small"></div>
+                <div class="ts-text postContent"></div>
+            </div>
+        </div>
+    `);
+    let targetElement =  $(`.site-post[post_id='${timeStamp}']`).find(".postContent");
+    loadMarkdownToHTML("/site/posts/" + filename,targetElement);
+}
+
+initPosts();
+</script>

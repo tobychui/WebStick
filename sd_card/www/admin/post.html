@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PostEngine Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" >
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <style>
+        body{
+            background-color: rgb(243, 243, 243);
+            border-top: 1px solid #70aeff;
+        }
+
+        .ui.vertical.menu{
+            width: calc(15em - 3px) !important;
+        }
+
+        .postengine_context{
+            padding-left: calc(15em + 1px) !important;
+        }
+
+        #msgbox_snackbar {
+          min-width: 240px;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background-color: #323232;
+          color: white;
+          padding: 16px;
+          border-radius: 4px;
+          display: none;
+          z-index: 1000;
+        }
+    </style>
+</head>
+  <body>
+      <div class="ui container">
+
+      </div>
+      <div id="postengine_side_menu" class="ui left fixed inverted vertical menu">
+          <div class="item" style="pointer-events: none;">
+            <img class="ui fluid image" src="./img/post-engine.svg">
+          </div>
+          <div class="item">
+            <div class="header">Posts</div>
+            <div class="menu">
+              <a class="item active" name="allposts" xtab="posteng/all.html">All Posts</a>
+              <a class="item" name="newpost" xtab="posteng/new.html">Add New</a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="header">Media</div>
+            <div class="menu">
+              <a class="item" name="library" xtab="posteng/library.html">Image Library</a>
+              <a class="item" name="paste" xtab="posteng/paste.html">Image Paste</a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="header">Pages</div>
+            <div class="menu">
+              <a class="item" name="allpages" xtab="posteng/pages.html">All Pages</a>
+              <a class="item" name="newpage" xtab="posteng/newpg.html">Add New</a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="header">Settings</div>
+            <div class="menu">
+              <a class="item" name="settings" xtab="posteng/setting.html">General</a>
+              <!-- <a class="item" name="permlinks" xtab="">Permalinks</a> -->
+            </div>
+          </div>
+      </div>
+      <!-- Function Tabs -->
+      <div id="postengine_tab" class="postengine_context"></div>
+      
+      <!-- msgbox snackbar -->
+      <div id="msgbox_snackbar">
+        <span id="msgbox_text">This is a message</span>
+      </div>
+      <script>
+        var editingPost = ""; //The name of the post being edited, if empty = new post
+        $("#postengine_tab").load("posteng/all.html");
+
+        // Add event listener to menu items with target attribute
+        $("#postengine_side_menu .item[xtab]").on("click", function() {
+            var targetId = $(this).attr("xtab");
+            $("#postengine_side_menu .item.active").removeClass("active");
+            $(this).addClass("active");
+            //Load the xtab url into the postengine_tab div
+            $("#postengine_tab").load(targetId, function() {
+                // Callback function after loading the content
+                // You can add any additional logic here if needed
+                console.log("Loaded: " + targetId);
+            });
+        });
+
+        function switchToTab(tabName) {
+           switch(tabName) {
+                case "allposts":
+                    $("#postengine_tab").load("posteng/all.html");
+                    break;
+                case "newpost":
+                    $("#postengine_tab").load("posteng/new.html");
+                    break;
+                case "library":
+                    $("#postengine_tab").load("posteng/library.html");
+                    break;
+                case "paste":
+                    $("#postengine_tab").load("posteng/paste.html");
+                    break;
+                case "allpages":
+                    $("#postengine_tab").load("posteng/pages.html");
+                    break;
+                case "newpage":
+                    $("#postengine_tab").load("posteng/newpage.html");
+                    break;
+                case "settings":
+                    $("#postengine_tab").load("posteng/settings.html");
+                    break;
+                case "permlinks":
+                    $("#postengine_tab").load("posteng/permalinks.html");
+                    break;
+            }
+            // Update the active class on the menu items
+            $("#postengine_side_menu .item.active").removeClass("active");
+            $("#postengine_side_menu .item[name='" + tabName + "']").addClass("active");
+
+        }
+
+
+        function msgbox(message, duration = 3000) {
+          const snackbar = document.getElementById("msgbox_snackbar");
+          const text = document.getElementById("msgbox_text");
+          $(text).html(message);
+          $(snackbar).fadeIn("fast").delay(duration).fadeOut("fast");
+        }
+
+        /*
+        
+          Common post management features
+          
+        */
+
+        //Storage and loader utils to load from pref database
+        //the perf database is a key-value store that only
+        //writable when logged in but readable by everyone
+        
+        function setValue(key, value, callback){
+            $.get("/api/pref/set?key=" + key + "&value=" + value, function(data){
+                callback(data);
+            });
+        }
+
+        function loadValue(key, callback){
+            $.get("/api/pref/get?key=" + key, function(data){
+                callback(data);
+            });
+        }
+       
+        //Update the post index in the server side
+        function updatePostIndex(callback=undefined){
+          let postList = [];
+          $.ajax({
+              url: "/api/fs/list?dir=/site/posts",
+              success: function(data){
+                  data.forEach(file => {
+                      let filename = file.Filename;
+                      let ext = filename.split(".").pop();
+                      if (ext == "md" && file.IsDir == false){
+                          //Markdown file. Render it
+                          postList.push(filename);
+                      }
+                  });
+
+                  //Set the
+                  setValue("site-posts", btoa(encodeURIComponent(JSON.stringify(postList))), function(data){
+                      console.log(data);
+                      if (callback != undefined){
+                          callback();
+                      }
+                  });
+              }
+          });
+      }
+
+      </script>
+  </body>
+</html>

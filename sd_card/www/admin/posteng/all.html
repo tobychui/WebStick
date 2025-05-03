@@ -1,0 +1,150 @@
+<br>
+<div class="ui container">
+    <div class="ui basic segment">
+        <h2 class="ui header">All Posts</h2>
+        <table class="ui single line table">
+            <thead>
+                <tr>
+                    <th>Post Name</th>
+                    <th>Creation Time</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="postTableBody">
+                <tr id="loadingRow">
+                    <td colspan="4" style="text-align: center;">
+                        <div class="ui active inline loader"></div>
+                    </td>
+                </tr>
+                <!-- Rows will be dynamically loaded here -->
+            </tbody>
+        </table>
+        <button class="ui green basic button" id="refreshButton">
+            <i class="ui refresh icon"></i> Refresh
+        </button>
+    </div>
+
+    <div class="ui basic small modal" id="deleteConfirmModal">
+        <div class="ui icon header">
+            <i class="trash alternate outline icon"></i>
+            Confirm Delete
+        </div>
+        <div class="content" align="center">
+            <p>Are you sure you want to delete the post <span id="deletePostName"></span>?</p>
+        </div>
+        <div class="actions">
+            <div class="ui red ok inverted button" onclick="confirmDelete()" deleteingPostID="">
+                <i class="trash icon"></i>
+                Yes
+            </div>
+            <div class="ui basic cancel inverted button">
+                <i class="remove icon"></i>
+                Cancel
+            </div>
+        </div>
+    </div>
+
+    <div class="ui active dimmer" style="display:none;" id="loadingDimmer">
+        <div class="ui text loader">Loading post contents</div>
+    </div>
+</div>
+
+<script>
+    /*
+        Post List
+
+        This script will fetch the list of posts from /www/site/posts/*.md
+        and display them in a table format.
+    */
+
+    function getPosts(){
+        // Show loading animation
+        $("#postTableBody").html(`<tr id="loadingRow">
+            <td colspan="4" style="text-align: center;">
+                <div class="ui active inline loader"></div>
+            </td>
+        </tr>`);
+        // Fetch the list of posts from the server
+        $.get("/api/fs/list?dir=/site/posts/", function(data){
+            console.log(data);
+            let postList = data.filter(file => file.Filename.endsWith(".md") && !file.IsDir);
+            postList.sort((a, b) => {
+                const getTimestamp = filename => parseInt(filename.split('_')[0]);
+                return getTimestamp(b.Filename) - getTimestamp(a.Filename); // Sort by timestamp in filename
+            });
+
+            //Render the posts in the table
+            console.log("Post list loaded: ", postList);
+            $("#postTableBody").empty(); // Clear the table body
+
+            postList.forEach(post => {
+                const postName = post.Filename.split('/').pop().replace('.md', ''); // Extract the post name
+                const postTime = new Date(post.Filename.split('_')[0] * 1000).toLocaleString(); // Convert timestamp to readable format
+                $("#postTableBody").append(`
+                    <tr>
+                        <td>${postName.replace(/^\d+_/, '')}</td>
+                        <td>${postTime}</td>
+                        <td><button class="ui basic button edit-button" onclick="editPost('${post.Filename}');"><i class="ui blue edit icon"></i> Edit</button></td>
+                        <td><button class="ui red basic button delete-button" onclick="deletePost('${post.Filename}');"><i class="ui trash icon"></i> Delete</button></td>
+                    </tr>
+                `);
+            });
+
+            if (postList.length == 0) {
+                $("#postTableBody").append(`
+                    <tr id="nopost">
+                        <td colspan="4" style="text-align: center;">No posts available</td>
+                    </tr>
+                `);
+            }
+        });
+    }
+
+    //Open post editor
+    function editPost(postID){
+        $("#loadingDimmer").show(); // Show loading dimmer
+        editingPost = postID; // Store the postID for editing
+        $("#postengine_tab").load("posteng/edit.html");
+    }
+
+    // Delete post
+    function deletePost(postID) {
+        const postName = postID.replace(/^\d+_/, ''); // Trim the timestamp prefix
+        $('#deletePostName').text(postName); // Populate the post name in the modal
+        $('#deleteConfirmModal .ok.button').attr('deleteingPostID', postID); // Store the postID in the confirm button
+        $('#deleteConfirmModal').modal('show'); // Show the confirmation modal
+    }
+
+    function confirmDelete() {
+        const postID = $('#deleteConfirmModal .ok.button').attr('deleteingPostID'); // Retrieve the postID
+        if (!postID) return;
+
+        // Send a delete request to the server
+        $.ajax({
+            url: `/api/fs/del?target=/site/posts/${postID}`,
+            type: 'POSt',
+            success: function(response) {
+                updatePostIndex(); // Update the post index
+                console.log('Post deleted:', response);
+                $('#deleteConfirmModal').modal('hide'); // Hide the modal
+                getPosts(); // Refresh the post list
+                msgbox(`Post "${postID.replace(/^\d+_/, '')}" deleted successfully`, 2000); // Show success message
+            },
+            error: function(error) {
+                console.error('Error deleting post:', error);
+                msgbox('Failed to delete the post', 2000); // Show error message
+            }
+        });
+    }
+
+    // Initial call to load posts
+    getPosts();
+
+    // Event listener for the Refresh button
+    $('#refreshButton').on('click', function() {
+        getPosts(); // Reload the table content
+        msgbox("Post list refreshed", 2000); // Show a message box
+    });
+ 
+</script>

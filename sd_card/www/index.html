@@ -1,134 +1,146 @@
 <!DOCTYPE html>
 <html>
 <head>
-	
-  <!-- HTML Meta Tags -->
-  <title>Welcome to WebStick!</title>
-  <meta name="description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta name="viewport" content="width=device-width, initial-scale=1" >
-  
-  <!-- Facebook Meta Tags -->
-  <meta property="og:url" content="https://imuslab.com">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Welcome to WebStick!">
-  <meta property="og:description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta property="og:image" content=" ">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="icon" type="image/png" href="/favicon.png">
+	<!-- HTML Meta Tags -->
+	<title>Homepage | WebStick</title>
+	<meta name="description" content="A tiny web server powered by ESP8266, designed by tobychui">
+	<meta name="viewport" content="width=device-width, initial-scale=1" >
+		
+	<!-- Facebook Meta Tags -->
+	<meta property="og:url" content="https://imuslab.com">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Welcome to WebStick!">
+	<meta property="og:description" content="A tiny web server powered by ESP8266, designed by tobychui">
+	<meta property="og:image" content=" ">
 
-  <!-- Twitter Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="imuslab.com">
-  <meta property="twitter:url" content="https://imuslab.com">
-  <meta name="twitter:title" content="Welcome to WebStick!">
-  <meta name="twitter:description" content="A tiny web server powered by ESP8266, designed by tobychui">
-  <meta name="twitter:image" content=" ">
+	<!-- Twitter Meta Tags -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta property="twitter:domain" content="imuslab.com">
+	<meta property="twitter:url" content="https://imuslab.com">
+	<meta name="twitter:title" content="Welcome to WebStick!">
+	<meta name="twitter:description" content="A tiny web server powered by ESP8266, designed by tobychui">
+	<meta name="twitter:image" content=" ">
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+  	<!-- CDN -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/5.0.2/tocas.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/5.0.2/tocas.min.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-  <style>
-	.character.ring{
-		width: 320px;
-		height: 320px;
-		margin-top: 20px;
-		border: 5px solid #f9c729 !important;
-		background-color: white;
-		border-radius: 50%;
-		display: inline-block;
-	}
-	
-	.character.infill{
-		width: 260px;
-		height: 260px;
-		margin-top: 25px;
-		background-color: #ffcb2e;
-		border-radius: 50%;
-		display: inline-block;
-	}
-
-	.charactercard{
-		width: 375px !important;
-		border: 0px solid transparent;
-		-webkit-box-shadow: none !important;
-		box-shadow: -3px 12px 19px 5px rgba(204,204,204,0.59) !important;
-	}
-
-	.dark.divider{
-		height: 3px;
-		background: #020202;
-		width: 60px;
-		margin-bottom: 1.4em;
-		margin-top: 1.6em;
-	}
-
-	.breadcrumb .section{
-		font-weight: 300;
-		font-size: 1.2em;
-	}
-
-	.blacklink{
-		color: #020202;
-		transition: margin-top ease-in-out 0.1s, color ease-in-out 0.1s !important;
-	}
-
-	.blacklink:hover{
-		color: #020202;
-		opacity: 0.7;
-		margin-top: -1.2em !important;
-	}
-	
-	.linkbuttons{
-		padding: 2em;
-	}
-
-	.linkbuttons .ui.white.button{
-		background: white !important;
-		padding: 1.2em;
-		margin-top: 0.8em;
-	}
-
-	.linkbuttons .ui.white.button:hover{
-		opacity: 0.8;
-	}
-  </style>
+	<style>
+		#banner{
+			background: linear-gradient(48deg, rgba(108,172,255,1) 8%, rgba(141,235,255,1) 65%)
+		}
+	</style>
 </head>
 <body>
-	<div class="ui container" align="center">
-	<br>
-		<div class="ui fluid card charactercard">
-			<div class="image" style="background-color: #ffe38d;" align="center">
-				<div class="character ring">
-					<div class="character infill">
-						<img src="img/selfie.jpg" style="border-radius: 50%; width: 100%; user-select: none; pointer-events: none;">
-					</div>    
-				</div>    
-				<h1 style="font-weight: bolder;">Hello visitor!</h1>
-				<div class="dark divider"></div>
-				<div class="ui breadcrumb">
-					<div class="section">Software Engineer</div>
-					<div class="divider"> / </div>
-					<div class="section">Electronics Maker</div>
-				</div>
-				<div class="linkbuttons">
-					<a class="ui fluid white button" href="about.html">About WebStick</a>
-					<a class="ui fluid white button" href="blog/index.html">My Blog</a>
-					<a class="ui fluid white button" href="down/"><i class="ui download icon"></i> Downloads</a>
-					<a class="ui fluid white button" href="tool/qr.html"><i class="ui qrcode icon"></i> QR Code Generator</a>
-					<div class="ui divider"></div>
-					<a class="ui fluid white button" href="admin/"><i class="ui sign in icon"></i> Admin Panel</a>
-				</div>
+	<div class="ts-content">
+		<div class="ts-tab is-segmented">
+			<a class="item is-active" data-tab="home">Home</a>
+			<a class="item" data-tab="about">About</a>
+			<a class="item" data-tab="posts">Posts</a>
+			<a class="item" data-tab="qr">QR</a>
 		</div>
-		<div class="content" align="center">
-			<a class="blacklink" href="https://www.youtube.com/channel/UCzbcGOZHO2BH-ANX7W0MGIg"><i class="big youtube icon"></i></a>
-			<a class="blacklink" href="https://blog.imuslab.com"><i class="big wordpress icon"></i></a>
-			<a class="blacklink" href="mailto:imuslab@gmail.com"><i class="big envelope icon"></i></a>
-			<a class="blacklink" href="https://github.com/tobychui/"><i class="big github icon"></i></a>
-			<a class="blacklink" href="https://www.facebook.com/ImusLaboratory"><i class="big facebook icon"></i></a>
-	  </div>
+		<div class="has-top-spaced-small"></div>
+		<div class="ts-content " id="home">
+			<div id="banner" class="ts-content is-rounded is-padded has-top-spaced-large" style=" color: var(--ts-gray-50)">
+				<div style="max-width: 300px">
+					<div id="site-title" class="ts-header is-huge is-heavy">WebStick</div>
+					<p id="site-description">A personal web server hosted on an ESP8266 using a micro SD card</p>
+					<a href="/admin" class="ts-button is-outlined" style="color: var(--ts-gray-50)">Login</a>
+				</div>
+			</div>
+
+			<!-- Contact Information, change these to yours -->
+			<div id="contacts_icon" class="ts-content is-center-aligned has-top-spaced-large">
+				<a href="https://www.youtube.com/channel/UCzbcGOZHO2BH-ANX7W0MGIg"><span class="ts-icon is-huge is-youtube-icon"></span></a>
+				<a class="has-start-spaced-large" href="https://blog.imuslab.com"><span class="ts-icon is-huge is-newspaper-icon"></span></a>
+				<a class="has-start-spaced-large" href="mailto:imuslab@gmail.com"><span class="ts-icon is-huge is-envelope-icon"></span></a>
+				<a class="has-start-spaced-large" href="https://github.com/tobychui/webstick"><span class="ts-icon is-huge is-code-icon"></span></a>
+			</div>
+		</div>
+		<div class="ts-content" id="about">
+			<!-- Dynmaically loaded by ajax from about.html -->
+		</div>
+		<div class="ts-content" id="posts">
+			<!-- Dynmaically loaded by ajax from post.html -->
+		</div>
+		<div class="ts-content" id="qr">
+			<!-- An iframe will be append here for the QR code generator -->
+		</div>
+		
+		<div class="ts-divider"></div>
+		<div class="ts-content">
+			<p class="ts-text">This site is hosted on a WebStick designed by <a href="https://imuslab.com" target="_blank">tobychui</a></p>
+		</div>
 	</div>
-		<br>
-		<p>This site is hosted on a WebStick designed by <a href="https://imuslab.com">imuslab</a></p>
-		<br>
-	</div>
+	
+	<script>
+		/* Ajax load of the pages */
+		$("#about").load("about.html");
+		$("#posts").load("posts.html");
+		$("#qr").html('<iframe src="tool/qr.html" style="border: none; width: 100%; height: calc(100vh - 200px);"></iframe>');
+
+		/* Load the site info from pref */
+		function loadValue(key, callback){
+            $.get("/api/pref/get?key=" + key, function(data){
+                callback(data);
+            });
+        }
+
+		function initSiteInfo(){
+			var defaultSettings = {
+				siteTitle: "WebStick",
+				siteDescription: "A personal web server hosted on an ESP8266 using a micro SD card",
+				youtubeLink: "https://www.youtube.com/channel/UCzbcGOZHO2BH-ANX7W0MGIg",
+				facebookLink: "",
+				xLink: "",
+				githubLink: "https://github.com/tobychui/webstick",
+				blogLink: "https://blog.imuslab.com",
+				websiteLink: "https://imuslab.com",
+				emailLink: "imuslab@gmail.com"
+			};
+
+			//Initiate the settings form with current values
+			loadValue("site-info", function(data){
+				if (data.error != undefined || data == ""){
+					data = defaultSettings;
+				}else{
+					data = JSON.parse(decodeURIComponent(data));
+				}
+				console.log(data);
+				$("#site-title").text(data.siteTitle);
+				$("#site-description").text(data.siteDescription);
+
+				//Clear and regnerate the contact icons
+				$("#contacts_icon").html("");
+				if (data.youtubeLink != ""){
+					$("#contacts_icon").append('<a href="' + data.youtubeLink + '"><span class="ts-icon is-huge is-youtube-icon"></span></a>');
+				}
+				if (data.blogLink != ""){
+					$("#contacts_icon").append('<a class="has-start-spaced-large" href="' + data.blogLink + '"><span class="ts-icon is-huge is-wordpress-icon"></span></a>');
+				}
+				if (data.emailLink != ""){
+					$("#contacts_icon").append('<a class="has-start-spaced-large" href="mailto:' + data.emailLink + '"><span class="ts-icon is-huge is-envelope-icon"></span></a>');
+				}
+				if (data.githubLink != ""){
+					$("#contacts_icon").append('<a class="has-start-spaced-large" href="' + data.githubLink + '"><span class="ts-icon is-huge is-github-icon"></span></a>');
+				}
+				if (data.xLink != ""){
+					$("#contacts_icon").append('<a class="has-start-spaced-large" href="' + data.xLink + '"><span class="ts-icon is-huge is-twitter-icon"></span></a>');
+				}
+				if (data.facebookLink != ""){
+					$("#contacts_icon").append('<a class="has-start-spaced-large" href="' + data.facebookLink + '"><span class="ts-icon is-huge is-facebook-icon"></span></a>');
+				}
+
+			});
+    	}
+
+    	initSiteInfo();
+	</script>
 </body>
 </html>

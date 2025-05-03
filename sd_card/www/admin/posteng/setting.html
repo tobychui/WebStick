@@ -1,0 +1,115 @@
+
+<div class="ui text container" style="margin-top: 3em;">
+    <h2 class="ui header">Site Settings</h2>
+    <form class="ui form">
+        <div class="field">
+            <label for="site-title">Site Title</label>
+            <input type="text" id="site-title" name="site-title" placeholder="Enter site title">
+        </div>
+        <div class="field">
+            <label for="site-description">Site Description</label>
+            <input type="text" id="site-description" name="site-description" placeholder="Enter site description">
+        </div>
+        <div class="field">
+            <label for="youtube-link">YouTube Link</label>
+            <input type="url" id="youtube-link" name="youtube-link" placeholder="Enter YouTube link">
+        </div>
+        <div class="field">
+            <label for="facebook-link">Facebook Link</label>
+            <input type="url" id="facebook-link" name="facebook-link" placeholder="Enter Facebook link">
+        </div>
+        <div class="field">
+            <label for="x-link">X (Twitter) Link</label>
+            <input type="url" id="x-link" name="x-link" placeholder="Enter X (Twitter) link">
+        </div>
+        <div class="field">
+            <label for="github-link">GitHub Link</label>
+            <input type="url" id="github-link" name="github-link" placeholder="Enter GitHub link">
+        </div>
+        <div class="field">
+            <label for="blog-link">Blog Link</label>
+            <input type="url" id="blog-link" name="blog-link" placeholder="Enter Blog link">
+        </div>
+        <div class="field">
+            <label for="website-link">Website Link</label>
+            <input type="url" id="website-link" name="website-link" placeholder="Enter Website link">
+        </div>
+        <div class="field">
+            <label for="email-link">Email Address</label>
+            <input type="email" id="email-link" name="email-link" placeholder="Enter Email address">
+        </div>
+        <button class="ui basic button" type="submit"><i class="blue save icon"></i> Save</button>
+    </form>
+</div>
+<script>
+    // Function to handle form submission
+    document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+        
+        // Get the values from the input fields
+        const siteTitle = document.getElementById('site-title').value;
+        const siteDescription = document.getElementById('site-description').value;
+        const youtubeLink = document.getElementById('youtube-link').value;
+        const facebookLink = document.getElementById('facebook-link').value;
+        const xLink = document.getElementById('x-link').value;
+        const githubLink = document.getElementById('github-link').value;
+        const blogLink = document.getElementById('blog-link').value;
+        const websiteLink = document.getElementById('website-link').value;
+        const emailLink = document.getElementById('email-link').value;
+
+        // Create a JSON object and encode it
+        const settingsJson = encodeURIComponent(JSON.stringify({
+            siteTitle: siteTitle,
+            siteDescription: siteDescription,
+            youtubeLink: youtubeLink,
+            facebookLink: facebookLink,
+            xLink: xLink,
+            githubLink: githubLink,
+            blogLink: blogLink,
+            websiteLink: websiteLink,
+            emailLink: emailLink
+        }));
+
+        setValue("site-info", encodeURIComponent(settingsJson), function(){
+                msgbox("Site info updated", 2000);
+                initSiteInfo();
+        });
+    });
+    
+
+    function initSiteInfo(){
+        var defaultSettings = {
+            siteTitle: "WebStick",
+            siteDescription: "A personal web server hosted on an ESP8266 using a micro SD card",
+            youtubeLink: "https://www.youtube.com/channel/UCzbcGOZHO2BH-ANX7W0MGIg",
+            facebookLink: "",
+            xLink: "",
+            githubLink: "https://github.com/tobychui/webstick",
+            blogLink: "https://blog.imuslab.com",
+            websiteLink: "https://imuslab.com",
+            emailLink: "imuslab@gmail.com"
+        };
+
+        //Initiate the settings form with current values
+        loadValue("site-info", function(data){
+            if (data.error != undefined || data == ""){
+                data = defaultSettings;
+            }else{
+                data = JSON.parse(decodeURIComponent(data));
+            }
+            console.log(data);
+            document.getElementById('site-title').value = data.siteTitle;
+            document.getElementById('site-description').value = data.siteDescription;
+            document.getElementById('youtube-link').value = data.youtubeLink || '';
+            document.getElementById('facebook-link').value = data.facebookLink || '';
+            document.getElementById('x-link').value = data.xLink || '';
+            document.getElementById('github-link').value = data.githubLink || '';
+            document.getElementById('blog-link').value = data.blogLink || '';
+            document.getElementById('website-link').value = data.websiteLink || '';
+            document.getElementById('email-link').value = data.emailLink || '';
+        });
+    }
+
+    initSiteInfo();
+   
+</script>

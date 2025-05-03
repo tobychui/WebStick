@@ -27,21 +27,25 @@
                 user-select: none;
                 pointer-events: none;
             }
+
+            #propertiesView{
+                overflow-x: hidden;
+            }
         </style>
     </head>
     <body class="whiteTheme">
         <div id="navibar" class="navibar">
             <!-- File Opr Group-->
-            <button class="fileOprBtn" title="Open" onclick="openViaButton(event);"><img class="opricon" src="img/opr/open.svg"><p class="oprtxt" locale="fileopr/Open">Open</p></button>
-            <button id="copyButton" class="fileOprBtn" title="Copy" onclick="copy();"><img class="opricon" src="img/opr/copy.svg"><p class="oprtxt" locale="fileopr/Copy">Copy</p></button>
-            <button id="pasteButton" class="fileOprBtn" title="Paste" onclick="paste();"><img class="opricon" src="img/opr/paste.svg"><p class="oprtxt" locale="fileopr/Paste">Paste</p></button>
+            <button class="fileOprBtn" title="Open" onclick="openViaButton(event);"><img class="opricon" xsrc="img/opr/open.svg"><p class="oprtxt" locale="fileopr/Open">Open</p></button>
+            <button id="copyButton" class="fileOprBtn" title="Copy" onclick="copy();"><img class="opricon" xsrc="img/opr/copy.svg"><p class="oprtxt" locale="fileopr/Copy">Copy</p></button>
+            <button id="pasteButton" class="fileOprBtn" title="Paste" onclick="paste();"><img class="opricon" xsrc="img/opr/paste.svg"><p class="oprtxt" locale="fileopr/Paste">Paste</p></button>
             <div class="fileoprGroupDivider" style="display: inline-block; vertical-align: top;">
                 <button class="fileoprSmallBtn" title="Refresh" onclick="refresh();"><i class="green refresh icon"></i> <span locale="fileopr/Refresh">Refresh</span></button><br>
                 <button class="fileoprSmallBtn" title="Cut" onclick="cut();"><i class="blue cut icon"></i> <span locale="fileopr/Cut">Cut</span></button><br>
                 <button class="fileoprSmallBtn" title="Rename" onclick="rename();"><i class="teal i cursor icon"></i> <span locale="fileopr/Rename">Rename</span></button>
             </div>
-            <button class="fileOprBtn" title="Upload" onclick="upload(); "><img class="opricon" src="img/opr/upload.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Upload">Upload</p></button>
-            <button class="fileOprBtn" title="Download" onclick="downloadFile(); "><img class="opricon" src="img/opr/download.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Download">Download</p></button>
+            <button class="fileOprBtn" title="Upload" onclick="upload(); "><img class="opricon" xsrc="img/opr/upload.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Upload">Upload</p></button>
+            <button class="fileOprBtn" title="Download" onclick="downloadFile(); "><img class="opricon" xsrc="img/opr/download.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Download">Download</p></button>
             <div class="fileoprGroupDivider" style="display: inline-block; vertical-align: top;"></div>
           
             <div class="fileoprGroupDivider" style="display: inline-block; vertical-align: top;">
@@ -49,7 +53,7 @@
                 <button class="fileoprSmallBtn" title="New Folder" onclick="newFolder();"><i style="color: #ffe79e !important;" class="yellow folder icon"></i> <span locale="fileopr/New Folder">New Folder</span></button><br>
                 <button class="fileoprSmallBtn" title="Delete" onclick="deleteFile();"><i class="red times icon"></i> <span locale="fileopr/Delete">Delete</span></button><br>
             </div>
-            <button class="fileOprBtn" title="Download" onclick="shareFile(); "><img class="opricon" src="img/opr/share.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Share">Share</p></button>
+            <button class="fileOprBtn" title="Download" onclick="shareFile(); "><img class="opricon" xsrc="img/opr/share.svg"><p class="oprtxt wideScreenOnly" locale="fileopr/Share">Share</p></button>
             <br>
             <!-- Directoy navigations -->
             <div class="addressBar">
@@ -1210,7 +1214,21 @@
             }
 
 
-
+            /* 
+                Delay loading 
+                ESP8266 cannot handle so many concurrent conncetions
+                So we delay the loading of images to prevent the ESP8266 from overloading
+                This is a hack to make the page load faster and not freeze the browser
+            */ 
+            setTimeout(() => {
+                $("img[xsrc]").each(function () {
+                    const imgElement = $(this);
+                    const randomDelay = Math.floor(Math.random() * (1500 - 1000 + 1)) + 500; // Random delay between 500ms and 1500ms
+                    setTimeout(() => {
+                        imgElement.attr("src", imgElement.attr("xsrc"));
+                    }, randomDelay);
+                });
+            }, 0);
         </script>
     </body>
 </html>

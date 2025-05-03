@@ -147,30 +147,6 @@
                         callback();
                     }
                 });
-                /*
-                ao_module_agirun("./MDEditor/filesaver.js", {
-                    filepath: filepath, 
-                    content: newcontent
-                }, function(data){
-                    console.log(data);
-                    if (data.error !== undefined){
-                        alert(data.error);
-                    }else{
-                        //Save succeed. Update last saved content
-                        lastSaveContent = newcontent;
-
-                        //Update the title as well
-                        document.title = (originalTitle);
-
-                        if (callback != undefined){
-                            callback();
-                        }
-                    }
-                }, function(){
-                    alert("Save File Failed!")
-                });
-                */
-
             }
 
 

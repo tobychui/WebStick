@@ -1,0 +1,108 @@
+<br>
+<div class="ui container" style="margin-top: 20px;">
+    <h2 class="ui header">Image Library</h2>
+    <p>The table below shows the screenshots pasted into the editor</p>
+    <table class="ui celled table">
+        <thead>
+            <tr>
+                <th>Image Name</th>
+                <th>Upload Time</th>
+                <th>Preview</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="libraryTableBody">
+            <tr>
+                <td colspan="4" style="text-align: center;">
+                    <div class="ui active inline loader"></div>
+                    <span>Loading...</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="ui green basic button" onclick="initImageLibrary();">
+        <i class="refresh icon"></i> Refresh
+    </button>
+    <div class="ui divider"></div>
+    <!-- Image Preview Section -->
+    <h3>Image Preview</h3>
+    <p>Click on the preview button to see the image</p>
+    <div class="ui segment">
+        <img id="library_image_preview_element" class="ui centered big image" src="">
+    </div>
+    <br><br>
+</div>
+
+<script>
+    function initImageLibrary(){
+        // Fetch the list of posts from the server
+        $("#libraryTableBody").html(`<tr><td colspan="4" style="text-align: center;"><div class="ui active inline loader"></div><span>Loading...</span></td></tr>`);
+        $.get("/api/fs/list?dir=/site/img/", function(data){
+            console.log(data);
+            let imageList = data.filter(file => (file.Filename.endsWith(".jpg") || file.Filename.endsWith(".png")) && !file.IsDir);
+            imageList.sort((a, b) => {
+                const getTimestamp = filename => parseInt(filename.split('_')[0]);
+                return getTimestamp(b.Filename) - getTimestamp(a.Filename); // Sort by timestamp in filename
+            });
+
+            //Render the images in the table
+            let tableBody = $("#libraryTableBody");
+            tableBody.empty(); // Clear existing rows
+
+            imageList.forEach(image => {
+                const imageName = image.Filename.split('/').pop(); // Extract the image name
+                const imagePath = "/site/img/" + image.Filename; 
+                const uploadTimestamp = parseInt(imageName.split('.')[0]); // Extract the timestamp from the filename
+                const uploadDate = new Date(uploadTimestamp).toLocaleString(); // Convert timestamp to local time
+                tableBody.append(`
+                    <tr>
+                        <td>${imageName.replace(/^\d+_/, '')}</td>
+                        <td>${uploadDate}</td>
+                        <td><button class="ui basic button" onclick="previewImage('${imagePath}');">Preview</button></td>
+                        <td><button class="ui basic red button" onclick="deleteImage('${imagePath}');">Delete</button></td>
+                    </tr>
+                `);
+            });
+
+            if (imageList.length == 0) {
+                tableBody.append(`
+                    <tr id="noimage">
+                        <td colspan="4" style="text-align: center;"><i class="ui green circle check icon"></i> No images / screenshots</td>
+                    </tr>
+                `);
+            }
+            
+
+        });
+    }
+
+    function previewImage(imagePath) {
+        // Set the image source to the selected image path
+        $("#library_image_preview_element").attr("src", imagePath);
+        $("#library_image_preview_element").show(); // Show the image preview element
+    }
+
+    function deleteImage(imagePath) {
+        // Confirm deletion
+        if (confirm("Are you sure you want to delete this image?")) {
+            $.ajax({
+                url: "/api/fs/del?target=" + imagePath,
+                method: "POST",
+                success: function(data) {
+                    if (data.error !== undefined) {
+                        msgbox(`<i class="ui red times icon"></i> Error deleting image: ` + data.error);
+                    } else {
+                        msgbox(`<i class="ui green check icon"></i> Image deleted`);
+                        initImageLibrary(); // Refresh the image library
+                        $("#library_image_preview_element").attr("src", "").hide(); // Clear and hide the image preview
+                    }
+                },
+                error: function() {
+                    alert("Error deleting image.");
+                }
+            });
+        }
+    }
+
+    initImageLibrary();
+</script>

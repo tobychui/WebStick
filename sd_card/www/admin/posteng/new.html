@@ -1,0 +1,628 @@
+
+<link rel="stylesheet" href="mde/script/mde.css">
+<script src="mde/script/mde.js"></script>
+<style>
+    .selectable{
+        cursor: pointer;
+    }
+
+    .selectable:hover{
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #mediaContent{
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .editor-preview img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .CodeMirror,
+    .CodeMirror-scroll {
+        height: 520px !important;
+        min-height: 520px !important;
+        max-height: 520px !important;
+    }
+
+    .file-item.selected {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .folder-item.selected {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+<br>
+<script>
+    $(document).ready(function() {
+        if ($('.postengine_media_selector').length > 1) {
+            $('.postengine_media_selector').first().remove();
+        }
+    });
+</script>
+<div class="ui container" style="margin-top: 20px;">
+    <h2 class="ui header">New Post</h2>
+    <!-- Load draft message -->
+    <div id="loadDraftMessage" class="ui hidden message">
+        <div class="header">Saved Draft Found</div>
+        <p>A saved draft was found. Would you like to load it?</p>
+        <button class="ui green basic button" id="loadDraftButton">Load Draft</button>
+        <button class="ui red basic button" id="discardDraftButton">Discard</button>
+    </div>
+    <!-- Post Editor -->
+    <div class="ui form">
+        <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="Enter title here">
+        </div>
+        
+        <div class="field">
+            <label for="editor">Post Content</label>
+            <textarea id="editor"></textarea>
+        </div>
+        <button class="ui basic button" id="saveButton"><i class="ui green upload icon"></i> Publish</button>
+        <button class="ui blue basic button" id="saveDraftButton"><i class="ui save icon"></i> Save as Draft</button>
+    </div>
+</div>
+
+<!-- Media Selector -->
+<div class="ui modal postengine_media_selector">
+    <i class="close icon"></i>
+    <div class="content">
+        <div class="ui fluid input">
+            <button class="ui basic circular icon button" id="backButton">
+                <i class="arrow left icon"></i>
+            </button>
+            <button class="ui basic circular icon button" id="parentButton" style="margin-left: 0.4em;">
+                <i class="arrow up icon"></i>
+            </button>
+            <input type="text" placeholder="/" id="locationBar" style="margin-left: 0.4em;" value="/">
+        </div>
+        <div id="mediaContent" class="ui segments" style="margin-top: 1em;">
+            <div class="ui basic segment" style="pointer-events: none; user-select: none; opacity: 0.5;">
+                <i class="ui green circle check icon"></i> Loading media files...
+            </div>
+        </div>
+        <div id="limited_access_warning" class="ui hidden red message" style="display:none;">
+            This folder is not accessible by guest visitors but only logged-in users.
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">
+            Cancel
+        </div>
+        <button class="ui basic button" id="importButton">
+            <i class="green download icon"></i> Import Selected
+        </button>
+    </div>
+</div>
+<br><br><br>
+<script>
+    var currentDir = "/"; // Initialize current path
+    var pathHistory = []; // Initialize path history
+    var unsafeCharacters = /[<>:"/\\|?*\x00-\x1F]/; // Regex for unsafe characters
+    if (typeof(autosaveInterval) != "undefined"){
+        clearInterval(autosaveInterval); // Clear any existing autosave interval
+    }
+    var autosaveInterval;
+    // Load draft from localStorage on page load
+    var savedTitle = localStorage.getItem('draftTitle');
+    var savedContent = localStorage.getItem('draftContent');
+
+    // Initialize SimpleMDE
+    var simplemde = new SimpleMDE({ 
+        element: document.getElementById("editor"),
+        toolbar: [
+            "bold", 
+            "italic", 
+            "heading", 
+            "|", 
+            "code",
+            "quote", 
+            "unordered-list", 
+            "ordered-list", 
+            "|", 
+            "link", 
+            "table",
+            "horizontal-rule",
+            "image",
+            {
+                name: "mediaSelect",
+                action: function customFunction(editor) {
+                    openMediaSelector(editor);
+                },
+                className: "fa fa-folder", // Font Awesome icon
+                title: "Select Media"
+            },
+            "|", 
+            "preview",
+        ]
+    });
+
+    bindOnPasteEvent(); // Bind paste event to the editor
+
+    // Allow vertical resize for the editor
+    document.getElementById("editor").style.resize = "vertical";
+
+    /*
+        Media Selector
+
+        This function will open the media selector modal when the media button is clicked.
+    */
+
+    function fetchDirectoryContents(path) {
+        $.ajax({
+            url: `/api/fs/list?dir=${encodeURIComponent(path)}`,
+            method: 'GET',
+            success: function(data) {
+                if (data.error == undefined){
+                    pathHistory.push(currentDir);
+                    if (path.endsWith("/")) {
+                        currentDir = path.slice(0, -1); // Remove trailing slash if present
+                    } else {
+                        currentDir = path; // Update current directory
+                    }
+                    $("#locationBar").val(currentDir); // Update location bar
+                    renderDirectoryContents(data);
+                } else {
+                    alert("Failed to fetch directory contents: " + data.error);
+                }
+            },
+            error: function() {
+                alert("Error fetching directory contents.");
+            }
+        });
+    }
+
+    function renderDirectoryContents(contents) {
+        const container = $("#mediaContent");
+        container.empty();
+        let folderElements = ``;
+        let fileElements = ``;
+        let selectableFileCounter = 0;
+        contents.forEach(item => {
+            if (item.IsDir) {
+                folderElements += (`
+                <div class="ui segment folder-item selectable" data-path="${currentDir + "/" + item.Filename}">
+                    <i class="yellow folder icon"></i> ${item.Filename}
+                </div>
+                `);
+                selectableFileCounter++;
+            } else if (!item.IsDir && isWebSafeFile(item.Filename)) {
+                let fileIcon = getFileTypeIcons(item.Filename);
+                fileElements += (`
+                <div class="ui segment file-item selectable" data-path="${currentDir + "/" + item.Filename}" data-type="${getFileType(item.Filename)}">
+                    ${fileIcon} ${item.Filename}
+                </div>
+                `);
+                selectableFileCounter++;
+            }
+        });
+
+        container.append(folderElements);
+        container.append(fileElements);
+
+        if (selectableFileCounter == 0) {
+            container.append("<div class='ui basic segment' style='pointer-events: none; user-select: none; opacity: 0.5;'><i class='ui green circle check icon'></i> No usable files / folders found</div>");
+        }
+
+        // Add click handlers for folders and files
+        $(".folder-item").on('dblclick', function() {
+            const path = $(this).data('path');
+            fetchDirectoryContents(path);
+        });
+
+        $(".folder-item").on("click", function(event) {
+            const path = $(this).data('path');
+            if (!event.ctrlKey) {
+                // Highlight the selected folder and remove previous selection if ctrl is not held
+                $(".folder-item.selected").removeClass("selected");
+            }
+            $(this).toggleClass("selected"); // Toggle selection for the clicked item
+        });
+
+        $(".file-item").on('dblclick', function() {
+            $(".postengine_media_selector").modal("hide");
+            const path = $(this).data('path');
+            const type = $(this).data('type');
+            addMediaFileToEditor(path, type);
+        });
+
+        $(".file-item").on("click", function(event) {
+            const path = $(this).data('path');
+            const type = $(this).data('type');
+            if (!event.ctrlKey) {
+                // Highlight the selected file and remove previous selection if ctrl is not held
+                $(".file-item.selected").removeClass("selected");
+            }
+            $(this).toggleClass("selected"); // Toggle selection for the clicked item
+        });
+
+        //Show warning if the directory starts with /admin or /store
+        if (currentDir.startsWith("/admin") || currentDir.startsWith("/store")) {
+            $("#limited_access_warning").show();
+        } else {
+            $("#limited_access_warning").hide();
+        }
+    }
+
+    // Bind event to the back button
+    $('#backButton').on('click', function() {
+        if (pathHistory.length > 1) {
+            pathHistory.pop(); // Remove the current directory
+            const previousPath = pathHistory.pop();
+            fetchDirectoryContents(previousPath);
+        }
+    });
+
+    // Bind event to the parent button
+    $('#parentButton').on('click', function() {
+        if (currentDir == "/") { 
+            msgbox("Already at the root directory", 3000);
+            return;
+        }
+        let parentPath = currentDir.split("/");
+        parentPath.pop(); // Remove the last element (current directory)
+        parentPath = parentPath.join("/"); // Join the remaining elements to form the parent path
+        if (parentPath == ""){
+            parentPath = "/"; // Set to root if empty
+        }
+        fetchDirectoryContents(parentPath);
+    });
+
+    // Bind event to the import button
+    $('#importButton').on('click', function() {
+        const selectedFolders = $(".folder-item.selected");
+        const selectedFiles = $(".file-item.selected");
+        if (selectedFiles.length === 0 && selectedFolders.length === 0) {
+            alert("No files selected for import.");
+            return;
+        }
+
+        selectedFolders.each(function() {
+            const path = $(this).data('path');
+            const type = "link"; 
+            addMediaFileToEditor(path, type);
+        });
+
+        selectedFiles.each(function() {
+            const path = $(this).data('path');
+            const type = $(this).data('type');
+            addMediaFileToEditor(path, type);
+        });
+
+        $(".postengine_media_selector").modal("hide");
+    });
+
+    function isWebSafeFile(fileName) {
+        const webSafeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'webm', 'mp3', 'ogg'];
+        const extension = fileName.split('.').pop().toLowerCase();
+        return webSafeExtensions.includes(extension);
+    }
+
+    function getFileType(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+            return 'image';
+        } else if (extension === 'webm') {
+            return 'video';
+        } else if (['mp3', 'ogg'].includes(extension)) {
+            return 'audio';
+        } else {
+            return 'unknown';
+        }
+    }
+
+
+    function openMediaSelector(editor){
+        // Reset history
+        pathHistory = []; // Reset path history
+        fetchDirectoryContents(currentDir);
+        $(".postengine_media_selector").modal("show");
+    }
+
+    function addMediaFileToEditor(mediaLink, mediaType){
+        if (mediaType === 'image') {
+            simplemde.codemirror.replaceSelection(`![Image](${mediaLink})`);
+            } else if (mediaType === 'video') {
+            let mimeType = mediaLink.split('.').pop().toLowerCase() === 'webm' ? 'video/webm' : 'video/mp4';
+            simplemde.codemirror.replaceSelection(`<video style="background:black;" width="720" height="480" controls><source src="${mediaLink}" type="${mimeType}"></video>`);
+        } else if (mediaType === 'audio') {
+            simplemde.codemirror.replaceSelection(`<audio style="min-width: 512px;" controls><source src="${mediaLink}" type="audio/mpeg">Your browser does not support the audio element.</audio>`);
+        } else if (mediaType === 'link') {
+            let folderName = mediaLink.split("/").pop(); // Extract folder name from path
+            simplemde.codemirror.replaceSelection(`[${folderName}](${mediaLink})`);
+        } else {
+            alert("Unsupported media type!");
+            return;
+        }
+    }
+
+    function getFileTypeIcons(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+            return '<i class="blue file image icon"></i>';
+        } else if (extension === 'webm') {
+            return '<i class="violet file video icon"></i>';
+        } else if (['mp3', 'ogg'].includes(extension)) {
+            return '<i class="green file audio icon"></i>';
+        } else {
+            return '<i class="file icon"></i>';
+        }
+    }
+
+    /*
+        Title Validation
+
+        This function will validate the title input to ensure it does not contain unsafe characters.
+        If the title contains unsafe characters, the save button will be disabled and an alert will be shown.
+    */
+   
+    function validateTitle() {
+        const title = $('#title').val();
+        if (unsafeCharacters.test(title) || title.length > 19) {
+            msgbox("Title contains unsafe characters or is too long (max 19 characters).", 3000);
+            return false;
+        }
+        return true;
+    }
+    
+
+    // Save button functionality
+    $('#saveButton').on('click', function() {
+        const title = $('#title').val();
+        const content = simplemde.value();
+
+        console.log("Title:", title);
+        console.log("Content:", content);
+
+        if (!validateTitle()){
+            return; // Exit if title is invalid
+        }
+
+        createNewPost(title, content);
+
+    });
+
+    // Save Draft button functionality
+    $('#saveDraftButton').on('click', function() {
+        const title = $('#title').val();
+        const content = simplemde.value();
+
+        if (title.trim() === "" && content.trim() === "") {
+            alert("Cannot save an empty draft.");
+            return;
+        }
+
+        localStorage.setItem('draftTitle', title);
+        localStorage.setItem('draftContent', content);
+
+        msgbox("Draft saved");
+    });
+
+    // Discard Draft button functionality
+    $('#discardDraftButton').on('click', function() {
+        if (confirm("Are you sure you want to discard the draft? This action cannot be undone.")) {
+            localStorage.removeItem('draftTitle');
+            localStorage.removeItem('draftContent');
+
+            $('#title').val('');
+            simplemde.value('');
+
+            msgbox("Draft discarded");
+
+            $('#loadDraftMessage').addClass('hidden');
+        }
+    });
+
+   
+
+    if (savedTitle || savedContent) {
+        $('#loadDraftMessage').removeClass('hidden');
+
+        $('#loadDraftButton').on('click', function() {
+            $('#title').val(savedTitle || '');
+            simplemde.value(savedContent || '');
+            $('#loadDraftMessage').addClass('hidden');
+        });
+    }
+
+    // Autosave functionality
+    autosaveInterval = setInterval(function() {
+        if (!document.getElementById("editor")) {
+            clearInterval(autosaveInterval);
+            return;
+        }
+        const title = $('#title').val();
+        const content = simplemde.value();
+
+        if (title.trim() === "" && content.trim() === "") {
+            return; // Don't save empty drafts
+        }
+
+        localStorage.setItem('draftTitle', title);
+        localStorage.setItem('draftContent', content);
+    }, 5000); // Autosave every 5 seconds
+
+
+    /*
+        Post Create Function
+    */
+
+    // Function to create a new post
+    function createNewPost(title, content="# Hello World\n"){
+        if (title.trim() === "" && content.trim() === "") {
+            alert("Cannot create an empty post.");
+            return;
+        }
+        $("#saveButton").addClass("loading disabled");
+        //Create the markdown file at the /blog/posts folder
+        const blob = new Blob([content], { type: 'text/plain' });
+        let storeFilename = parseInt(Date.now()/1000) + "_" + title+'.md';
+        const file = new File([blob], storeFilename);
+        handleFile(file, "/site/posts", function(){
+            //Update the post index
+            updatePostIndex(function(){
+                $("#confirmNewPostBtn").removeClass("loading disabled");
+                msgbox("Post created successfully!", 3000);
+
+                switchToTab("allposts"); // Switch to the all posts tab
+            });
+
+            //Clear the draft 
+            localStorage.removeItem('draftTitle');
+            localStorage.removeItem('draftContent');
+        });
+    }
+
+    // Error handler for AJAX requests
+    function errorHandler(event) {
+        msgbox("Failed to create post: " + event.target.responseText, 3000);
+        $("#saveButton").removeClass("loading disabled");
+    }
+
+    // Function to handle file upload
+    function handleFile(file, dir=currentPath, callback=undefined) {
+        // Perform actions with the selected file
+        var formdata = new FormData();
+        formdata.append("file1", file);
+        var ajax = new XMLHttpRequest();
+        ajax.addEventListener("load", function(event){
+            let responseText = event.target.responseText;
+            try{
+                responseText = JSON.parse(responseText);
+                if (responseText.error != undefined){
+                    alert(responseText.error);
+                }
+            }catch(ex){
+
+            }
+            if (callback != undefined){
+                callback();
+            }
+        }, false); // doesnt appear to ever get called even upon success
+        ajax.addEventListener("error", errorHandler, false);
+        //ajax.addEventListener("abort", abortHandler, false);
+        ajax.open("POST", "/upload?dir=" + dir);
+        ajax.send(formdata);
+    }
+
+    $(document).ready(function() {
+        // Initialize with root directory
+        fetchDirectoryContents(currentDir);
+    });
+
+    /*
+        Handle image paste into the mde editor
+    */
+    function compressImageToJpeg(imageData, filename) {
+        return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                const maxWidth = 1024; // Set maximum width for compression
+                const maxHeight = 1024; // Set maximum height for compression
+                let width = img.width;
+                let height = img.height;
+
+                // Maintain aspect ratio
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], filename, {
+                                type: 'image/jpeg',
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            reject(new Error('Compression failed.'));
+                        }
+                    },
+                    'image/jpeg',
+                    0.8 // Compression quality (0.0 to 1.0)
+                );
+            };
+
+            img.onerror = () => reject(new Error('Failed to load image.'));
+            img.src = imageData; // Set the image source to the data URL
+        });
+    }
+
+    function uploadImage(comperssedFile, callback=undefined) {
+        const formData = new FormData();
+        if (comperssedFile) {
+            formData.append("file1", comperssedFile);
+            var ajax = new XMLHttpRequest();
+            ajax.addEventListener("load", function(event) {
+                let responseText = event.target.responseText;
+                if (responseText.includes("ok")){
+                    msgbox(`<i class="ui green check icon"></i> Image uploaded`, 3000);
+                    if (callback != undefined){
+                        callback();
+                    }
+                }
+            }, false);
+
+            ajax.addEventListener("error", function(event) {
+                alert("Failed to upload image: " + event.target.responseText);
+            }, false);
+
+            ajax.open("POST", "/upload?dir=/site/img");
+            ajax.send(formData);
+        }else{
+            console.error("No image to upload!");
+        }
+    }
+
+    function bindOnPasteEvent(){
+        $(".CodeMirror textarea").on("paste", function(event) {
+            console.log(event);
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") !== -1) {
+                    const file = items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageData = e.target.result;
+                        const fileName = Date.now() + ".jpg";
+
+                        compressImageToJpeg(imageData, fileName).then((compressedFile) => {
+                            console.log("Pasting compressed image:", fileName);
+                            const imgTag = `![Image](/site/img/${fileName})`;
+                            uploadImage(compressedFile, function(){
+                                console.log("Image uploaded:", fileName);
+                                simplemde.codemirror.replaceSelection(imgTag);
+                            });
+
+                        }).catch((error) => {
+                            msgbox(`<i class="ui red times icon"></i> Image compression failed`, 3000);
+                            console.error("Image compression failed:", error);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                    event.preventDefault();
+                    return;
+                }
+            }
+        });
+    }
+    
+</script>
