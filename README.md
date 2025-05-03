@@ -10,7 +10,9 @@ The WebStick is a ESP8266 powered device that provide a basic miniature cloud dr
 
 ## Features
 
-*Features with the (v3) tag means the feature is designed for WebStick v3 and might not work as expected on WebStick v2*
+*Features with the (v3) tag means the feature is designed for WebStick v3 and might not work as expected on WebStick v1 / v2*
+
+*The v4 firmware can be flashed to WebStick v3*
 
 - Basic Web Server
 
@@ -30,6 +32,11 @@ The WebStick is a ESP8266 powered device that provide a basic miniature cloud dr
   - Support UTF-8 filename (32 bit length only, filename length depends on variable bytes used per char)
 
   - File Share with QR code *(v3)*
+
+- WebStick PostEngine (v4)
+  - Create, edit and delete blog post
+  - Screenshot pasting and compression tool
+  - Setting for homepage titles, description and contact links
 
 - File Searching Tool
 
