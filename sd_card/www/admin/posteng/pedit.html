@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"/>
+		<meta name="theme-color" content="#ff9224">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+		
+		<!-- Editor -->
+		<script src=" https://cdn.jsdelivr.net/npm/suneditor@2.47.5/dist/suneditor.min.js "></script>
+		<link href=" https://cdn.jsdelivr.net/npm/suneditor@2.47.5/dist/css/suneditor.min.css " rel="stylesheet">
+		<script src="src/en.js"></script>
+
+		<style>
+			body{
+				margin: 0px;
+			}
+			#editorWrapper{
+				position: fixed;
+				left: 0px;
+				top: 0px;
+				width: 100%;
+				height: 100%;
+			}
+
+			#maineditor{
+				width: 100%;
+				height: calc(100vh - 0.4em);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="editorWrapper">
+			<textarea id="maineditor"></textarea>
+		</div>
+		
+		<script>
+			//Start a new editor if there is no file ported in
+			var editor;
+			if (parent.inputFiles == null){
+				//New Editor
+				initEditor();
+			}else{
+				//Get the filepath and load it
+				var filepath = parent.inputFiles;
+				//Load the given file
+				$.get("/api/fs/download?file=" + filepath, function(data) {
+					if (data.error == undefined){
+
+						var titleMatch = data.match(/<title>(.*?)<\/title>/i);
+						if (titleMatch && titleMatch[1]) {
+							var title = titleMatch[1];
+							console.log("Title found: " + title);
+							parent.setPageTitle(title);
+						}
+
+						var contentWithoutHead = data.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+						var contentWithoutBody = contentWithoutHead.replace(/<body[^>]*>|<\/body>/gi, '');
+						$("#maineditor").html(contentWithoutBody);
+						initEditor();
+					} else {
+						alert("Failed to load post content: " + data.error);
+					}
+				}).fail(function() {
+					alert("Error loading post content.");
+				});
+				
+			}
+			
+			$(window).on("resize", function(){
+				$("#suneditor_maineditor").css("width", window.innerWidth + "px");
+			});
+			
+			function getContent(){
+				return editor.getContents();
+			}
+
+			function initEditor(){
+				editor = SUNEDITOR.create(document.getElementById('maineditor'),
+					{	
+						lang: SUNEDITOR_LANG['en'],
+						buttonList: [
+							['undo', 'redo', 'save',  'preview'],
+							['font', 'fontSize', 'formatBlock'],
+							['paragraphStyle', 'blockquote'],
+							['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+							['fontColor', 'hiliteColor'],
+							['removeFormat'],
+							'/', // Line break
+							['outdent', 'indent'],
+							['align', 'horizontalRule', 'list', 'lineHeight'],
+							['table', 'link', 'image', 'video', 'audio' /** ,'math' */], // You must add the 'katex' library at options to use the 'math' plugin.
+							/** ['imageGallery'] */ // You must add the "imageGalleryUrl".
+							['showBlocks', 'codeView']
+						],
+						paragraphStyles : [
+							{
+								name: 'Segment',
+								class: '__se__ ui segment',
+							},
+							{
+								name: 'Red Segment',
+								class: '__se__ ui red segment',
+							},
+							{
+								name: 'Blue Segment',
+								class: '__se__ ui blue segment',
+							},
+							{
+								name: 'Green Segment',
+								class: '__se__ ui green segment',
+							},
+							{
+								name: 'Message',
+								class: '__se__ ui message',
+							},
+							{
+								name: 'Red Message',
+								class: '__se__ ui red message',
+							},
+							{
+								name: 'Blue Message',
+								class: '__se__ ui blue message',
+							},
+							{
+								name: 'Green Message',
+								class: '__se__ ui green message',
+							}
+						],
+						"resizingBar": false,
+						callBackSave : function (contents, isChanged) {
+							parent.handleSavefile(contents);
+							return false;
+						}
+					}
+				);
+				return editor;
+			}
+
+		</script>
+	</body>
+</html>

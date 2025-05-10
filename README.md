@@ -115,13 +115,21 @@ Here are the recommended settings for best performance.
 
 The WebStick provide basic web server functions like a fresh install Apache
 
-![image-20240323122057879](img/README/image-20240323122057879.png)
+![image-20250510203307491](img/README/image-20250510203307491.png)
 
-▲ Homepage template (you can modify it to whatever you want)
+▲ Homepage (the link icons are dynamically generated)
 
-![image-20230814160246137](img/README/image-20230814160246137.png)
+![image-20250510203347375](img/README/image-20250510203347375.png)
 
 ▲ Web server for HTML files
+
+![image-20250510203529903](img/README/image-20250510203529903.png)
+
+▲ Simple Post Viewer (v4+)
+
+![image-20250510203605617](img/README/image-20250510203605617.png)
+
+▲ QR Code Generator (v4+)
 
 ![image-20230814160329296](img/README/image-20230814160329296.png)
 
@@ -131,13 +139,21 @@ The WebStick provide basic web server functions like a fresh install Apache
 
 WebStick contains basic functions for single admin multi users environment. All file operations can only be performed by registered users in this system.
 
-![image-20230814160710900](img/README/image-20230814160710900.png)
+![image-20250510203411915](img/README/image-20250510203411915.png)
 
 ▲ Login / User System (based on Cookie not Basic Auth)
 
-![image-20240323120841577](img/README/image-20240323120841577.png)
+![image-20250510203428665](img/README/image-20250510203428665.png)
 
 ▲File Manager (Support upload, (multi-zip) download, copy, cut, paste, rename and new folder / files)
+
+![image-20250510203636902](img/README/image-20250510203636902.png)
+
+▲ PostEngine Pro - Markdown Editor (Blog post and media manager for creating posts and static HTML pages)
+
+![image-20250510203736747](img/README/image-20250510203736747.png)
+
+▲ PostEngine Pro - HTML Page Editor
 
 ![image-20240323120851503](img/README/image-20240323120851503.png)
 
@@ -197,7 +213,7 @@ As you might have notice by now this system is hosted on a 2 USD MCU (ESP8266), 
 
 - Slow Upload / Download speed (2 - 4Mbps), Very slow concurrent R/W speed (200 - 210 Kbps)
 
-- Single admin session (cookie), but more users can be created in WebStick v3
+- Single admin session (cookie), but more users can be created in WebStick v3 and later firmwares
 
 ## Getting the Hardware
 

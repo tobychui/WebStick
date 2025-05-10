@@ -1,0 +1,143 @@
+<br>
+<style>
+    #editorFrame {
+        width: 100%;
+        border: none;
+        height: calc(100vh - 1em);
+    }
+</style>
+<div class="ui text container" style="margin-top:20px;">
+    <h2>Create New Page</h2>
+    <form class="ui form">
+        <div class="field">
+            <label for="pageTitle">Page Title</label>
+            <input type="text" id="pageTitle" name="pageTitle" placeholder="Enter page title">
+        </div>
+        <div class="field">
+            <label for="saveFilename">Save Filename</label>
+            <div class="ui right labeled input">
+                <input type="text" id="saveFilename" name="saveFilename" placeholder="Enter filename">
+                <div class="ui basic label">
+                    .html
+                </div>
+            </div>
+            <small>The page will be saved to <code>/site/pages/</code></small>
+        </div>
+    </form>
+    <br>
+</div>
+<script>
+    //Set this to non null for the editor to start a new page
+    var inputFiles = null;
+    if (editingPage && editingPage != ""){
+        inputFiles = "/site/pages/" + editingPage;
+        
+
+        let filenameInput = document.getElementById("saveFilename");
+        filenameInput.value = editingPage;
+        filenameInput.disabled = true;
+
+        editingPage = ""; //Reset it
+    }
+    
+    //URL encode value of the template
+    var saveTemplate = "%3Chtml%3E%0A%20%20%20%20%3Chead%3E%0A%20%20%20%20%20%20%20%20%3Ctitle%3E%7B%7Btitle%7D%7D%3C%2Ftitle%3E%0A%20%20%20%20%20%20%20%20%3Cmeta%20charset%3D%22UTF-8%22%3E%0A%20%20%20%20%20%20%20%20%3Cmeta%20name%3D%22viewport%22%20content%3D%22width%3Ddevice-width%2C%20initial-scale%3D1.0%22%3E%0A%20%20%20%20%20%20%20%20%3Clink%20rel%3D%22stylesheet%22%20href%3D%22https%3A%2F%2Fcdnjs.cloudflare.com%2Fajax%2Flibs%2Ftocas-ui%2F5.0.2%2Ftocas.min.css%22%3E%0A%20%20%20%20%20%20%20%20%3Cscript%20src%3D%22https%3A%2F%2Fcdnjs.cloudflare.com%2Fajax%2Flibs%2Ftocas-ui%2F5.0.2%2Ftocas.min.js%22%3E%3C%2Fscript%3E%0A%20%20%20%20%20%20%20%20%3Clink%20rel%3D%22preconnect%22%20href%3D%22https%3A%2F%2Ffonts.googleapis.com%22%3E%0A%20%20%20%20%20%20%20%20%3Clink%20rel%3D%22preconnect%22%20href%3D%22https%3A%2F%2Ffonts.gstatic.com%22%20crossorigin%3E%0A%20%20%20%20%20%20%20%20%3Clink%20href%3D%22https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DNoto%2BSans%2BTC%3Awght%40400%3B500%3B700%26display%3Dswap%22%20rel%3D%22stylesheet%22%3E%0A%20%20%20%20%3C%2Fhead%3E%0A%20%20%20%20%3Cbody%3E%0A%20%20%20%20%20%20%20%20%3Cdiv%20id%3D%22context%22%20class%3D%22ts-content%20is-padded%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bcontent%7D%7D%0A%20%20%20%20%20%20%20%20%3C%2Fdiv%3E%0A%20%20%20%20%3C%2Fbody%3E%0A%20%20%20%20%3C%2Fhtml%3E";
+    saveTemplate = decodeURIComponent(saveTemplate);
+    function handleSavefile(content){
+            //Creating new file
+            let title = document.getElementById("pageTitle").value;
+            if (title.length > 27) {
+                msgbox(`<i class="ui red times icon"></i> The title cannot be longer than 27 characters.`);
+                return;
+            }
+
+            if (title.trim() === "") {
+                msgbox(`<i class="ui red times icon"></i> The page title cannot be empty.`);
+                return;
+            }
+
+            //Replace the title and content to the template
+            let editingTemplate = JSON.parse(JSON.stringify(saveTemplate)); //deepcopy
+            let filledTemplate = editingTemplate.replace("{{title}}", title).replace("{{content}}", content);
+            let filename = document.getElementById("saveFilename").value.trim();
+            if (inputFiles != null){
+                //Replace the filename with the base name of inputFiles
+                filename = inputFiles.split("/").pop();
+            }
+            if (filename.trim() === "") {
+                msgbox(`<i class="ui red times icon"></i> The filename cannot be empty.`);
+                return;
+            }
+            if (!filename.endsWith(".html")) {
+                filename += ".html";
+            }
+
+            //This will just overwrite the org file
+            createNewPage(filename, filledTemplate, function(){
+                if (inputFiles == null){
+                    msgbox(`<i class="ui green check icon"></i> Page created`, 3000);
+                    switchToTab("allpages"); // Switch to the all posts tab
+                }else{
+                    msgbox(`<i class="ui green check icon"></i> Page updated`, 3000);
+                }
+            });
+        }
+    
+
+    //Upload the new content html to disk
+    function createNewPage(filename, content, callback=undefined){
+        if (filename.trim() === "" && content.trim() === "") {
+            alert("Cannot create an empty page.");
+            return;
+        }
+
+        //Create the markdown file at the /blog/posts folder
+        const blob = new Blob([content], { type: 'text/plain' });
+        const file = new File([blob], filename);
+        handleFile(file, "/site/pages", function(){
+            if (callback){
+                callback();
+            }
+        });
+    }
+
+    // Error handler for AJAX requests
+    function errorHandler(event) {
+        msgbox("Failed to create post: " + event.target.responseText, 3000);
+        $("#saveButton").removeClass("loading disabled");
+    }
+
+    //This is use for pedit to set page title from iframe
+    function setPageTitle(title){
+        let titleInput = document.getElementById("pageTitle");
+        titleInput.value = title;
+        titleInput.disabled = true;
+    }
+
+    // Function to handle file upload
+    function handleFile(file, dir, callback=undefined) {
+        // Perform actions with the selected file
+        var formdata = new FormData();
+        formdata.append("file1", file);
+        var ajax = new XMLHttpRequest();
+        ajax.addEventListener("load", function(event){
+            let responseText = event.target.responseText;
+            try{
+                responseText = JSON.parse(responseText);
+                if (responseText.error != undefined){
+                    alert(responseText.error);
+                }
+            }catch(ex){
+
+            }
+            if (callback != undefined){
+                callback();
+            }
+        }, false); // doesnt appear to ever get called even upon success
+        ajax.addEventListener("error", errorHandler, false);
+        //ajax.addEventListener("abort", abortHandler, false);
+        ajax.open("POST", "/upload?dir=" + dir);
+        ajax.send(formdata);
+    }
+</script>
+<iframe id="editorFrame" src="posteng/pedit.html"></iframe>

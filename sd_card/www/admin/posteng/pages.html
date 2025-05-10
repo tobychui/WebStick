@@ -1,0 +1,142 @@
+<br>
+<div class="ui container">
+    <div class="ui basic segment">
+        <h2 class="ui header">All Pages</h2>
+        <table class="ui single line table">
+            <thead>
+                <tr>
+                    <th>Page Name</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="pageTableBody">
+                <tr id="loadingRow">
+                    <td colspan="4" style="text-align: center;">
+                        <div class="ui active inline loader"></div>
+                    </td>
+                </tr>
+                <!-- Rows will be dynamically loaded here -->
+            </tbody>
+        </table>
+        <button class="ui green basic button" id="refreshButton">
+            <i class="ui refresh icon"></i> Refresh
+        </button>
+    </div>
+
+    <div class="ui basic small modal" id="deleteConfirmModal">
+        <div class="ui icon header">
+            <i class="trash alternate outline icon"></i>
+            Confirm Delete
+        </div>
+        <div class="content" align="center">
+            <p>Are you sure you want to delete the page <span id="deletePageName"></span>?</p>
+        </div>
+        <div class="actions">
+            <div class="ui red ok inverted button" onclick="confirmDelete()" deletingPageID="">
+                <i class="trash icon"></i>
+                Yes
+            </div>
+            <div class="ui basic cancel inverted button">
+                <i class="remove icon"></i>
+                Cancel
+            </div>
+        </div>
+    </div>
+
+    <div class="ui active dimmer" style="display:none;" id="loadingDimmer">
+        <div class="ui text loader">Loading page contents</div>
+    </div>
+</div>
+
+<script>
+    /*
+        Page List
+
+        This script will fetch the list of pages from /www/site/pages/*.html
+        and display them in a table format.
+    */
+
+    function getPages() {
+        // Show loading animation
+        $("#pageTableBody").html(`<tr id="loadingRow">
+            <td colspan="4" style="text-align: center;">
+                <div class="ui active inline loader"></div>
+            </td>
+        </tr>`);
+        // Fetch the list of pages from the server
+        $.get("/api/fs/list?dir=/site/pages/", function(data) {
+            console.log(data);
+            let pageList = data.filter(file => file.Filename.endsWith(".html") && !file.IsDir);
+            pageList.sort((a, b) => a.Filename.localeCompare(b.Filename)); // Sort alphabetically by filename
+
+            // Render the pages in the table
+            console.log("Page list loaded: ", pageList);
+            $("#pageTableBody").empty(); // Clear the table body
+
+            pageList.forEach(page => {
+                const pageName = page.Filename.split('/').pop().replace('.html', ''); // Extract the page name
+                $("#pageTableBody").append(`
+                    <tr>
+                        <td><a href="/site/pages/${page.Filename}" target="_blank">${pageName}</a></td>
+                        <td><button class="ui basic button edit-button" onclick="editPage('${page.Filename}');"><i class="ui blue edit icon"></i> Edit</button></td>
+                        <td><button class="ui red basic button delete-button" onclick="deletePage('${page.Filename}');"><i class="ui trash icon"></i> Delete</button></td>
+                    </tr>
+                `);
+            });
+
+            if (pageList.length == 0) {
+                $("#pageTableBody").append(`
+                    <tr id="nopage">
+                        <td colspan="3" style="text-align: center;">No pages available</td>
+                    </tr>
+                `);
+            }
+        });
+    }
+
+    // Open page editor
+    function editPage(pageID) {
+        $("#loadingDimmer").show(); // Show loading dimmer
+        editingPage = pageID; // Store the pageID for editing
+        $("#postengine_tab").load("posteng/newpg.html");
+    }
+
+    // Delete page
+    function deletePage(pageID) {
+        const pageName = pageID.replace(/^\d+_/, ''); // Trim the timestamp prefix
+        $('#deletePageName').text(pageName); // Populate the page name in the modal
+        $('#deleteConfirmModal .ok.button').attr('deletingPageID', pageID); // Store the pageID in the confirm button
+        $('#deleteConfirmModal').modal('show'); // Show the confirmation modal
+    }
+
+    function confirmDelete() {
+        const pageID = $('#deleteConfirmModal .ok.button').attr('deletingPageID'); // Retrieve the pageID
+        if (!pageID) return;
+
+        // Send a delete request to the server
+        $.ajax({
+            url: `/api/fs/del?target=/site/pages/${pageID}`,
+            type: 'POST',
+            success: function(response) {
+                console.log('Page deleted:', response);
+                $('#deleteConfirmModal').modal('hide'); // Hide the modal
+                getPages(); // Refresh the page list
+                msgbox(`Page "${pageID.replace(/^\d+_/, '')}" deleted successfully`, 2000); // Show success message
+            },
+            error: function(error) {
+                console.error('Error deleting page:', error);
+                msgbox('Failed to delete the page', 2000); // Show error message
+            }
+        });
+    }
+
+    // Initial call to load pages
+    getPages();
+
+    // Event listener for the Refresh button
+    $('#refreshButton').on('click', function() {
+        getPages(); // Reload the table content
+        msgbox("Page list refreshed", 2000); // Show a message box
+    });
+</script>
